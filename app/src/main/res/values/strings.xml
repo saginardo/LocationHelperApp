@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">定位助手</string>
+    <string name="doLocation">正在定位。。。</string>
+    <string name="simple_dialog">删除设备信息</string>
+    <string name="dialog_message">请确认是否删除所有信息？</string>
+    <string name="postive_button">确定</string>
+    <string name="negative_button">取消</string>
+    <string name="login_only_can_input">qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM1234567890</string>
+</resources>

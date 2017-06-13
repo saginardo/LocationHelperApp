@@ -72,6 +72,8 @@
                 android:id="@+id/et_query_id"
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:maxLength="5"
                 android:hint="请输入ID"
                 android:textSize="14sp"
                 />
@@ -110,6 +112,8 @@
                 android:id="@+id/et_delete_id"
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:maxLength="5"
                 android:hint="请输入ID"
                 android:textSize="14sp"
                 />
@@ -148,6 +152,8 @@
             <EditText
                 android:id="@+id/et_update_id"
                 android:layout_width="70dp"
+                android:maxLines="1"
+                android:maxLength="5"
                 android:layout_height="wrap_content"
                 android:hint="请输入ID"
                 android:textSize="14sp"

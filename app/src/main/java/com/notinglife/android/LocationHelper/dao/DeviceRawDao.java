@@ -116,10 +116,9 @@ public class DeviceRawDao {
 
     }
 
-    public List<LocationDevice> queryById(String deviceId) {
-        List<LocationDevice> list = new ArrayList<>();
-        LocationDevice bean = new LocationDevice();
+    public LocationDevice queryById(String deviceId) {
 
+        LocationDevice bean = new LocationDevice();
         SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
 
         //table:表名,
@@ -127,7 +126,7 @@ public class DeviceRawDao {
         // selection:查询条件, selectionArgs：条件占位符的参数值,
         // groupBy:按什么字段分组, having:分组的条件, orderBy:按什么字段排序
         Cursor cursor = db.query("devices", null,
-                "deviceId = ?", new String[]{deviceId}, null, null, "deviceId asc");
+                "deviceId = ?", new String[]{deviceId}, null, null, null);
 
         //解析Cursor中的数据
         if (cursor != null && cursor.getCount() > 0) {//判断cursor中是否存在数据
@@ -140,18 +139,20 @@ public class DeviceRawDao {
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
                 //LogUtil.i("查询到的设备：" + bean.mDeivceId + " " + bean.mMacAddress + "" + bean.mLatitude + " " + bean.mLongitude);
-                list.add(bean);
             }
             cursor.close();//关闭结果集
 
         } else {
+            if(cursor!=null){
+                cursor.close();
+            }
             //关闭数据库对象
             db.close();
             return null;
         }
         //关闭数据库对象
         db.close();
-        return list;
+        return bean;
     }
 
 
@@ -170,7 +171,7 @@ public class DeviceRawDao {
         if (cursor != null && cursor.getCount() > 0) {//判断cursor中是否存在数据
 
             while (cursor.moveToNext()) {//条件，游标能否定位到下一行
-                //每一次都是新的bean。不然会串行
+                // FIXED: 2017/6/10  每一次都是新的bean，不然会串行,始终添加最新的数据
                 LocationDevice bean = new LocationDevice();
                 //获取数据
                 bean.mId = cursor.getInt(0);
@@ -183,6 +184,10 @@ public class DeviceRawDao {
             cursor.close();//关闭结果集
 
         } else {
+
+            if(cursor!=null){
+                cursor.close();
+            }
             //关闭数据库对象
             db.close();
             return null;

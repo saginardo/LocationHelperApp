@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -135,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
         mDao = new DeviceRawDao(getApplicationContext());
         mLocationDevice = new LocationDevice();
+        //用来支持撤销功能的临时设备
         tmpDevice = new LocationDevice();
 
     }
@@ -178,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         List<LocationDevice> list = null;
+        LocationDevice deviceToDo = null;//查询出来的临时对象
 
         switch (v.getId()) {
             case R.id.bt_start_gps:
@@ -202,19 +205,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.bt_save_data:
 
                 if (!TextUtils.isEmpty(mLocationDevice.mLatitude)) {
+
                     String deviceid = mDeviceId.getText().toString();
                     String macaddress = generateMacAddress(mMacAddress_1,mMacAddress_2,
                             mMacAddress_3,mMacAddress_4,mMacAddress_5,mMacAddress_6);
+
                     LogUtil.i(macaddress);
                     if (deviceid.equals("")) {
                         ToastUtil.showShortToast(getApplicationContext(), "设备号码不能为空");
                         return;
                     }
-                    if (macaddress.equals("")) {
+                    if (macaddress!=null && macaddress.equals("")) {
                         ToastUtil.showShortToast(getApplicationContext(), "MAC地址不能为空");
                         return;
                     }
-                    if (macaddress.length() < 17) {
+                    if (macaddress!=null && macaddress.length() < 17) {
                         ToastUtil.showShortToast(getApplicationContext(), "MAC地址信息不全");
                         return;
                     }
@@ -230,13 +235,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         return;
                     }
 
-                    List<LocationDevice> list1 = mDao.queryById(deviceid);
-                    if (list1 != null && list1.size() != 0) {
+                    deviceToDo = mDao.queryById(deviceid);
+                    if (deviceToDo != null) {
                         ToastUtil.showShortToast(getApplicationContext(), "不能重复添加设备，请查看设备是否已保存");
                         return;
                     }
                     mDao.add(mLocationDevice);
-                    tmpDevice = mLocationDevice;
+                    this.tmpDevice = mLocationDevice;
 
                     ToastUtil.showShortToast(getApplicationContext(), "添加设备信息成功");
 
@@ -265,15 +270,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             case R.id.bt_undo_save:
-                if(tmpDevice.mDeivceId == null || tmpDevice.mDeivceId.equals("")){
+                //// FIXME: 2017/6/13 自增ID最大的是否是最近需要撤销的
+                if(tmpDevice== null){
                     ToastUtil.showShortToast(getApplicationContext(),"还未保存设备，无法撤销保存");
                     return;
                 }
-                List<LocationDevice> list1 = mDao.queryById(tmpDevice.mDeivceId);
-                if(list1==null||list1.size()==0){
+                deviceToDo = mDao.queryById(tmpDevice.mDeivceId);
+                if(deviceToDo==null){
                     ToastUtil.showShortToast(getApplicationContext(),"还未保存该设备，无法撤销保存");
                     return;
                 }
+                // FIXME: 2017/6/13 重构对话框
                 showDeleteByIdDialog(v,tmpDevice.mDeivceId);
 
             default:
@@ -444,6 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
+    // TODO: 2017/6/13 继续进行抽取
     private void showDeleteByIdDialog(View view, final String deleteString) {
 
         builder=new AlertDialog.Builder(this);

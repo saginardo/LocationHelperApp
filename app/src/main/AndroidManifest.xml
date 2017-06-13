@@ -33,9 +33,9 @@
             android:value="yBuYy3cGF3h3Hf7mH9Tb8QEBO5HmSW6A"/>
 
         <activity android:name="com.notinglife.android.LocationHelper.MainActivity">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>

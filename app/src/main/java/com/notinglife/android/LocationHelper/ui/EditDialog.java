@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
@@ -24,12 +25,19 @@ import butterknife.ButterKnife;
 
 public class EditDialog extends Dialog {
 
-    @BindView(R.id.bt_accept)
-    Button mPositiveButton;//确定按钮
-    @BindView(R.id.bt_cancel)
-    Button mNegativeButton;//取消按钮
     @BindView(R.id.tv_edit_device_title)
     TextView mDialogTitle;
+    @BindView(R.id.tv_is_delete_all)
+    TextView mIsDeleteAll;
+
+    @BindView(R.id.rl_device_id)
+    RelativeLayout mRLDeviceID;
+    @BindView(R.id.rl_device_lat_lng)
+    RelativeLayout mRLDeviceLatLng;
+    @BindView(R.id.rl_device_mac)
+    RelativeLayout mRLDeviceMac;
+
+
 
     @BindView(R.id.tv_device_id)
     TextView mTVDeviceId;
@@ -49,43 +57,34 @@ public class EditDialog extends Dialog {
     @BindView(R.id.et_device_mac)
     EditText mETDeviceMac;
 
+    @BindView(R.id.bt_accept)
+    Button mPositiveButton;//确定按钮
+    @BindView(R.id.bt_cancel)
+    Button mNegativeButton;//取消按钮
+
     private onPositiveOnclickListener positiveOnclickListener;//确定按钮被点击了的监听器
     private onNegativeOnclickListener negativeOnclickListener;//取消按钮被点击了的监听器
 
-    private String deviceId;
-    private String deviceLat;
-    private String deviceLng;
-    private String deviceMac;
-
+    private String dialogTitle;
+    private String message;
     private LocationDevice tmpDevice;
 
-    public EditDialog(Context context) {
+    //showdialog标志位
+    private int mFlag;
+    private final static int DELETEBYID = 0;
+    private final static int DELETEALL = 1;
+    private final static int UPDATEDEVICE = 2;
+
+    public EditDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);
+        dialogTitle  = title;
+        message = msg;
     }
-
-    /**
-     * 设置确定按钮的显示内容和监听
-     *
-     * @param onYesOnclickListener
-     */
-    public void setPositiveOnclickListener(onPositiveOnclickListener onYesOnclickListener) {
-        this.positiveOnclickListener = onYesOnclickListener;
-    }
-
-    /**
-     * 设置取消按钮的显示内容和监听
-     *
-     * @param onNoOnclickListener
-     */
-    public void setNegativeOnclickListener(onNegativeOnclickListener onNoOnclickListener) {
-        this.negativeOnclickListener = onNoOnclickListener;
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.device_edit_item);
+        setContentView(R.layout.device_show_dialog);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
         ButterKnife.bind(this);
@@ -98,7 +97,39 @@ public class EditDialog extends Dialog {
         initEvent();
 
     }
+    /**
+     * 初始化界面控件的显示数据回显
+     */
+    private void initData() {
 
+        if(dialogTitle!=null && !dialogTitle.equals("")){
+            mDialogTitle.setText(dialogTitle);
+        }
+        if(message!=null && !message.equals("")){
+            mIsDeleteAll.setVisibility(View.VISIBLE);
+            mIsDeleteAll.setText(message);
+        }
+    }
+
+    private void initView() {
+
+        if(tmpDevice!=null){
+            mETDeviceId.setText(tmpDevice.mDeivceId);
+            mETDeviceLat.setText(tmpDevice.mLatitude);
+            mETDeviceLng.setText(tmpDevice.mLongitude);
+            mETDeviceMac.setText(tmpDevice.mMacAddress);
+        }else {
+            mRLDeviceID.setVisibility(View.GONE);
+            mRLDeviceLatLng.setVisibility(View.GONE);
+            mRLDeviceMac.setVisibility(View.GONE);
+        }
+        if(mFlag==DELETEBYID){
+            mETDeviceId.setEnabled(false);
+            mETDeviceLat.setEnabled(false);
+            mETDeviceLng.setEnabled(false);
+            mETDeviceMac.setEnabled(false);
+        }
+    }
     /**
      * 初始化界面的确定和取消监听器
      */
@@ -123,28 +154,9 @@ public class EditDialog extends Dialog {
         });
     }
 
-    /**
-     * 初始化界面控件的显示数据回显
-     */
-    private void initData() {
-
-    }
-
-    private void initView() {
-        mETDeviceId.setText(tmpDevice.mDeivceId);
-        mETDeviceLat.setText(tmpDevice.mLatitude);
-        mETDeviceLng.setText(tmpDevice.mLongitude);
-        mETDeviceMac.setText(tmpDevice.mMacAddress);
-    }
-
     public void setDeviceInfo(LocationDevice locationDevice) {
         tmpDevice = new LocationDevice();
         tmpDevice = locationDevice;
-
-/*      deviceId = locationDevice.mDeivceId;
-        deviceLat = locationDevice.mLatitude;
-        deviceLng = locationDevice.mLongitude;
-        deviceMac = locationDevice.mMacAddress;*/
     }
 
     public LocationDevice getDeviceInfo() {
@@ -154,6 +166,27 @@ public class EditDialog extends Dialog {
         tmpDevice.mLongitude = mETDeviceLng.getText().toString();
         tmpDevice.mMacAddress = mETDeviceMac.getText().toString();
         return tmpDevice;
+    }
+    /**
+     * 设置确定按钮的显示内容和监听
+     *
+     * @param onYesOnclickListener
+     */
+    public void setPositiveOnclickListener(onPositiveOnclickListener onYesOnclickListener) {
+        this.positiveOnclickListener = onYesOnclickListener;
+    }
+
+    /**
+     * 设置取消按钮的显示内容和监听
+     *
+     * @param onNoOnclickListener
+     */
+    public void setNegativeOnclickListener(onNegativeOnclickListener onNoOnclickListener) {
+        this.negativeOnclickListener = onNoOnclickListener;
+    }
+
+    public void setFlag(int flag) {
+        mFlag = flag;
     }
 
     /**

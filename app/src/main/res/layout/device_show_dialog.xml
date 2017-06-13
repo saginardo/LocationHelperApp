@@ -8,7 +8,7 @@
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="@drawable/free_dialog_bg"
+        android:background="@drawable/edit_dialog_bg"
         android:orientation="vertical">
 
         <TextView

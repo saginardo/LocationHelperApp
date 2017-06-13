@@ -5,5 +5,7 @@
     <string name="dialog_message">请确认是否删除所有信息？</string>
     <string name="postive_button">确定</string>
     <string name="negative_button">取消</string>
-    <string name="login_only_can_input">qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM1234567890</string>
+    <string name="map_mark">标注</string>
+    <string name="devices">设备</string>
+    <string name="acq_data">采集</string>
 </resources>

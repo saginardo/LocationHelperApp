@@ -23,7 +23,8 @@
         android:layout_weight="1">
     </RelativeLayout>
 
-    <LinearLayout
+    <RadioGroup
+        android:id="@+id/rg_bottom_button"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@drawable/bottom_group_bg"
@@ -31,18 +32,19 @@
         android:orientation="horizontal"
         android:weightSum="3">
 
-        <Button
+        <RadioButton
             android:id="@+id/rb_acq_data"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/data_acq"
             android:text="@string/acq_data"
             android:textColor="@color/colorTextGray"
+            android:checked="true"
             android:weightSum="1"/>
         <View
             android:layout_width="1dp"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"/>
-        <Button
+        <RadioButton
             android:id="@+id/rb_mark_data"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/map_mark"
@@ -53,13 +55,14 @@
             android:layout_width="1dp"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"/>
-        <Button
+
+        <RadioButton
             android:id="@+id/rb_list_devices"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/devices"
             android:text="@string/devices"
             android:textColor="@color/colorTextGray"
             android:weightSum="1"/>
-    </LinearLayout>
+    </RadioGroup>
 
 </LinearLayout>

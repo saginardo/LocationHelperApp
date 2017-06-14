@@ -1,5 +1,6 @@
 package com.notinglife.android.LocationHelper.domain;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -10,12 +11,17 @@ import java.util.Objects;
  *          date 2017-06-08 19:46
  */
 
-public class LocationDevice {
+public class LocationDevice implements Serializable {
+
+    private static final long serialVersionUID = -2304670905038616692L;
+
     public Integer mId;
     public String mDeivceId;
     public String mMacAddress;
     public String mLatitude;
     public String mLongitude;
+    public String mRadius;
+    public Integer mLocMode;
 
     @Override
     public String toString() {
@@ -39,6 +45,8 @@ public class LocationDevice {
                 && Objects.equals(mMacAddress,other.mMacAddress)
                 && Objects.equals(mLatitude,other.mLatitude)
                 && Objects.equals(mLongitude,other.mLongitude);
+                //比较对象相同，不需要其精度信息
+                //&& Objects.equals(mRadius,other.mRadius);
     }
 
     @Override

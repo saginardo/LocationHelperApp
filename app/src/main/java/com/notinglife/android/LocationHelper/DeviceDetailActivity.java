@@ -1,7 +1,6 @@
 package com.notinglife.android.LocationHelper;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.net.Uri;
@@ -37,7 +36,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static com.notinglife.android.LocationHelper.utils.FileUtils.saveListToFile;
+import static com.notinglife.android.LocationHelper.utils.FileUtil.saveListToFile;
 
 public class DeviceDetailActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -206,7 +205,7 @@ public class DeviceDetailActivity extends AppCompatActivity implements View.OnCl
                     return;
                 }
 
-                //// FIXME: 2017/6/13 rework
+                //// FIXED: 2017/6/13 rework
                 deviceToDo = mDao.queryById(deleteString);
                 if (deviceToDo == null) {
                     ToastUtil.showShortToast(getApplicationContext(), "没有查询到需要删除的设备");
@@ -224,7 +223,7 @@ public class DeviceDetailActivity extends AppCompatActivity implements View.OnCl
                     return;
                 }
 
-                // FIXME: 2017/6/13 rework
+                // FIXED: 2017/6/13 rework
                 //showDeleteAllDialog(v);
                 showDialog(v,"删除所有设备信息","请确认是否删除所有设备信息",null,-1,DELETEALL);
                 break;
@@ -316,124 +315,8 @@ public class DeviceDetailActivity extends AppCompatActivity implements View.OnCl
                     mDeviceRecyclerAdapter.notifyItemRemoved(position);
                 }
             }
-
-
         }
     };
-
-    //删除单条数据
-    // FIXED: 2017/6/12 用自定义dialog重构
-    private void showDeleteByIdDialog(View view, final String deleteString) {
-        builder = new AlertDialog.Builder(this);
-        builder.setIcon(R.drawable.alert);
-        builder.setTitle("删除设备信息");
-        builder.setMessage("请确认是否当前设备信息？");
-
-        //监听下方button点击事件
-        builder.setPositiveButton(R.string.postive_button, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                LogUtil.i("确定按钮按下");
-                int num1 = mDao.deleteById(deleteString);
-                // FIXME: 2017/6/13 笨办法 清空后重新查询
-                mList.clear();
-                List<LocationDevice> tmpList = mDao.queryAll();
-                if (tmpList != null && tmpList.size() != 0) {
-                    mList.addAll(mDao.queryAll());
-                }
-                // mList.remove(2);
-                mDeviceRecyclerAdapter.notifyDataSetChanged();
-
-                if (num1 < 1) {
-                    ToastUtil.showShortToast(getApplicationContext(), "删除失败，请检查设备ID是否正确");
-                } else {
-                    ToastUtil.showShortToast(getApplicationContext(), "成功删除" + num1 + "条设备信息");
-                }
-                if (mList.size() == 0) {
-                    mScrollView.setVisibility(View.GONE);
-                    mTextView.setVisibility(View.VISIBLE);
-                }
-            }
-        });
-        builder.setNegativeButton(R.string.negative_button, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                LogUtil.i("取消按钮按下");
-            }
-        });
-
-        //设置对话框是可取消的
-        builder.setCancelable(true);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
-    //删除多条数据
-    // FIXED: 2017/6/12 用自定义dialog重构
-    private void showDeleteAllDialog(View view) {
-
-        builder = new AlertDialog.Builder(this);
-        builder.setIcon(R.drawable.alert);
-        builder.setTitle("删除设备信息");
-        builder.setMessage("请确认是否删除所有设备信息？");
-
-        //监听下方button点击事件
-        builder.setPositiveButton(R.string.postive_button, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                LogUtil.i("确定按钮按下");
-                int num2 = mDao.deleteAll();
-                mList.clear();
-                mDeviceRecyclerAdapter.notifyDataSetChanged();
-                ToastUtil.showShortToast(getApplicationContext(), "成功删除" + num2 + "行数据");
-                mScrollView.setVisibility(View.GONE);
-                mTextView.setVisibility(View.VISIBLE);
-            }
-        });
-        builder.setNegativeButton(R.string.negative_button, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                LogUtil.i("取消按钮按下");
-            }
-        });
-
-        //设置对话框是可取消的
-        builder.setCancelable(true);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
-    private void showEditDeviceDialog(View view, LocationDevice locationDevice, final int position) {
-
-        final LocationDevice[] tmpDevice = {new LocationDevice()};
-        mEditDialog = new EditDialog(DeviceDetailActivity.this, "修改设备信息1", null);
-
-        //将需要修改的对象传递给dialog
-        mEditDialog.setDeviceInfo(locationDevice);
-        //响应确定键的点击事件
-        mEditDialog.setPositiveOnclickListener(new EditDialog.onPositiveOnclickListener() {
-            @Override
-            public void onPositiveClick() {
-
-                tmpDevice[0] = mEditDialog.getDeviceInfo();
-                Message msg = Message.obtain();
-                msg.obj = tmpDevice[0];
-                msg.what = position;
-                mHandler.sendMessage(msg);
-
-                mEditDialog.dismiss();
-            }
-        });
-        //响应取消键的点击事件
-        mEditDialog.setNegativeOnclickListener(new EditDialog.onNegativeOnclickListener() {
-            @Override
-            public void onNegativeClick() {
-                mEditDialog.dismiss();
-            }
-        });
-        //展示对话框
-        mEditDialog.show();
-    }
 
     //还是通过 equals方法获取在mList中的位置
     private void showDialog(View view, String title, String message, LocationDevice locationDevice, final int position, final int flag) {

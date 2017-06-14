@@ -80,12 +80,12 @@ public class EditTextUtil {
         editTexts[5].setImeOptions(EditorInfo.IME_ACTION_NEXT);
         editTexts[5].setNextFocusForwardId(editTexts[6].getId());
 
-        editTexts[1].setTransformationMethod(new AllCapTransformationMethod(true));
-        editTexts[2].setTransformationMethod(new AllCapTransformationMethod(true));
-        editTexts[3].setTransformationMethod(new AllCapTransformationMethod(true));
-        editTexts[4].setTransformationMethod(new AllCapTransformationMethod(true));
-        editTexts[5].setTransformationMethod(new AllCapTransformationMethod(true));
-        editTexts[6].setTransformationMethod(new AllCapTransformationMethod(true));
+        editTexts[1].setTransformationMethod(new AllCapTransformationUtil(true));
+        editTexts[2].setTransformationMethod(new AllCapTransformationUtil(true));
+        editTexts[3].setTransformationMethod(new AllCapTransformationUtil(true));
+        editTexts[4].setTransformationMethod(new AllCapTransformationUtil(true));
+        editTexts[5].setTransformationMethod(new AllCapTransformationUtil(true));
+        editTexts[6].setTransformationMethod(new AllCapTransformationUtil(true));
     }
 
     public static String getStringData() {

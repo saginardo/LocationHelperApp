@@ -23,7 +23,7 @@ import java.util.List;
  *          date 2017-06-09 8:48
  */
 
-public class FileUtils {
+public class FileUtil {
 
     public static boolean saveToFile(Context context, LocationDevice locationDevice) {
 

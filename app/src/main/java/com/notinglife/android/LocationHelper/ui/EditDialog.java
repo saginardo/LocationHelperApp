@@ -71,9 +71,10 @@ public class EditDialog extends Dialog {
 
     //showdialog标志位
     private int mFlag;
-    private final static int DELETEBYID = 0;
-    private final static int DELETEALL = 1;
-    private final static int UPDATEDEVICE = 2;
+    private final static int DELETE_BY_ID = 0;
+    private final static int DELETE_ALL = 1;
+    private final static int UPDATE_DEVICE = 2;
+    private final static int UNDO_SAVE = 3;
 
     public EditDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);
@@ -123,7 +124,7 @@ public class EditDialog extends Dialog {
             mRLDeviceLatLng.setVisibility(View.GONE);
             mRLDeviceMac.setVisibility(View.GONE);
         }
-        if(mFlag==DELETEBYID){
+        if(mFlag==DELETE_BY_ID || mFlag == UNDO_SAVE){
             mETDeviceId.setEnabled(false);
             mETDeviceLat.setEnabled(false);
             mETDeviceLng.setEnabled(false);

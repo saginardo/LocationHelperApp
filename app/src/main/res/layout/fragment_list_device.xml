@@ -21,8 +21,193 @@
             android:text="这是设备列表界面"
             android:textSize="30sp"
             android:layout_gravity="center_horizontal"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:visibility="gone"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:text="设备列表"
+                android:textSize="22dp"/>
+
+            <TextView
+                android:id="@+id/tv_no_data"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="当前没有设备数据"
+                android:textSize="22dp"
+                android:visibility="gone"/>
+
+
+            <ScrollView
+                android:id="@+id/sv_devices"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1.80">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/id_recyclerview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                </android.support.v7.widget.RecyclerView>
+
+            </ScrollView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="设备查询:"
+                    android:textSize="15sp"/>
+
+                <EditText
+                    android:id="@+id/et_query_id"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:maxLength="5"
+                    android:hint="请输入ID"
+                    android:textSize="14sp"
+                    />
+
+                <Button
+                    android:id="@+id/bt_query_by_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="查询数据"
+                    />
+
+                <Button
+                    android:id="@+id/bt_query_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="刷新所有数据"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="设备删除:"
+                    android:textSize="15sp"/>
+
+                <EditText
+                    android:id="@+id/et_delete_id"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:maxLength="5"
+                    android:hint="请输入ID"
+                    android:textSize="14sp"
+                    />
+
+                <Button
+                    android:id="@+id/bt_delete_by_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="删除数据"
+                    />
+
+                <Button
+                    android:id="@+id/bt_delete_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="清除所有数据"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="设备更新:"
+                    android:textSize="15sp"/>
+
+                <EditText
+                    android:id="@+id/et_update_id"
+                    android:layout_width="70dp"
+                    android:maxLines="1"
+                    android:maxLength="5"
+                    android:layout_height="wrap_content"
+                    android:hint="请输入ID"
+                    android:textSize="14sp"
+                    />
+
+                <Button
+                    android:id="@+id/bt_update_by_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="更新数据"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginStart="5dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bt_save_to_file"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="保存文件"
+                    android:visibility="gone"/>
+
+                <Button
+                    android:id="@+id/bt_send_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:textSize="16sp"
+                    android:text="发送文件"/>
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 

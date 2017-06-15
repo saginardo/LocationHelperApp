@@ -17,13 +17,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
@@ -33,7 +31,6 @@ import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.ui.EditDialog;
 import com.notinglife.android.LocationHelper.utils.FileUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
@@ -87,24 +84,20 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
     @BindView(R.id.tv_no_data)
     TextView mTextView;
 
-    private static final String TAG_ACQ_DATA = "TAG_ACQ_DATA";
-    private static final String TAG_MAP_MARK = "TAG_MAP_MARK";
-    private static final String TAG_LIST_DEVICE = "TAG_LIST_DEVICE";
-
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
     private final static int DELETE_ALL = 1;
     private final static int UPDATE_DEVICE = 2;
     private final static int ON_SAVE_DATA = 3;  //接收到ContentFragment的消息的标志位
+    private final static int UNDO_SAVE = 4;
+    private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
     private DeviceRawDao mDao;
     private LinearLayoutManager mLayoutManager;
-    //private LocalBroadcastManager broadcastManager;
     private MyHandler mHandler;
     public Activity mActivity;
-    private ContentFragment mContentFragment;
     private  LocalBroadcastManager broadcastManager;
     private MyReceiver mReceiver;
 
@@ -112,8 +105,6 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = getActivity();
-
-
     }
 
     @Nullable
@@ -148,17 +139,19 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
             mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(mActivity, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    // TODO: 2017/6/12 单击事件的处理
+                    // TODO: 2017/6/12 单击事件的处理，预计实现点击进入详情页修改
                 }
 
                 @Override
                 public void onItemLongClick(View view, int position) {
-                    showDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
+                    //showDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
+                    UIUtil.showDialog(view, mActivity,mHandler,"修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
+
                 }
             }));
 
             ItemTouchHelper.SimpleCallback mCallback = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
-                    ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT) {
+                    ItemTouchHelper.LEFT) {
                 @Override
                 public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                     return false;
@@ -198,7 +191,7 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
         filter.addAction("com.notinglife.android.action.DATA_CHANGED");
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
-        //mHandler = new MyHandler(ListDeviceFragment.this);
+        mHandler = new MyHandler(ListDeviceFragment.this);
     }
 
 
@@ -207,7 +200,6 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
         super.onDestroy();
         broadcastManager.unregisterReceiver(mReceiver);
     }
-
 
     private static class MyHandler extends Handler {
 
@@ -224,9 +216,8 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
             int flag = msg.what;
             int position = msg.arg1;
 
-            LogUtil.i("---接收到消息标志位---"+flag  );
-
             ListDeviceFragment fragment = mFragment.get();
+
             if (fragment != null) {
                 //删除所有设备
                 if (flag == DELETE_ALL) {
@@ -237,7 +228,6 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                 }
 
                 if (flag == UPDATE_DEVICE) {
-
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null && tmpDevice.mDeivceId != null && !tmpDevice.mDeivceId.equals("")) {
                         int update = fragment.mDao.update(tmpDevice);
@@ -253,7 +243,7 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                 }
                 if (flag == DELETE_BY_ID) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null && tmpDevice.mDeivceId != null && !tmpDevice.mDeivceId.equals("")) {
+                    if (tmpDevice != null && tmpDevice.mId != null && tmpDevice.mId>0) {
                         int delete = fragment.mDao.deleteById(tmpDevice.mId);
 
                         if (delete == 1) {
@@ -268,9 +258,18 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                 }
 
                 if (flag == ON_SAVE_DATA) {
-                    LogUtil.i(msg.obj.toString());
+                    // TODO: 2017/6/15 暂时没有mList的position信息
+                    List<LocationDevice> locationDevices = fragment.mDao.queryAll();
+                    fragment.mList.clear();
+                    fragment.mList.addAll(locationDevices);
+                    fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
+                }
+                if(flag == UNDO_SAVE){
+                    // TODO: 2017/6/15 暂时没有mList的position信息
 
-                    //收到contentFragment消息后更新 UI
+                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
+                    fragment.mDao.deleteById(tmpDevice.mId);
+
                     List<LocationDevice> locationDevices = fragment.mDao.queryAll();
                     fragment.mList.clear();
                     fragment.mList.addAll(locationDevices);
@@ -288,19 +287,21 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
         int position;
         switch (v.getId()) {
             case R.id.bt_query_by_id:
+
                 String queryString = mQueryId.getText().toString();
                 if (TextUtils.isEmpty(queryString)) {
                     ToastUtil.showShortToast(mActivity, "请输入有效的设备的ID");
                     return;
                 }
                 deviceToDo = mDao.queryById(queryString);
-                //// FIXMD: 2017/6/13 对象为空，就没有必要判断对象的数据；对象不为空，就还需要判断对象数据不为空
+                // FIXMD: 2017/6/13 对象为空，就没有必要判断对象的数据；对象不为空，就还需要判断对象数据不为空
                 if (deviceToDo == null) {
                     ToastUtil.showShortToast(mActivity, "没有查询到设备，请检查输入的设备ID");
                     return;
                 } else {
                     mList.clear();
                     mList.add(deviceToDo);
+                    LogUtil.i( mList.toString());
                     mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
                 break;
@@ -311,6 +312,7 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                     ToastUtil.showShortToast(mActivity, "没有查询到设备信息");
                     return;
                 } else {
+                    LogUtil.i("点击了 全部查询");
                     mList.clear();
                     mList.addAll(locationDevices);
                     mDeviceRecyclerAdapter.notifyDataSetChanged();
@@ -331,7 +333,8 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                 }
                 position = mList.indexOf(deviceToDo);
                 //// FIXED: 2017/6/13 rework
-                showDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                //showDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                UIUtil.showDialog(v, mActivity,mHandler,"删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
                 break;
 
             case R.id.bt_delete_all:
@@ -340,7 +343,9 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
                     return;
                 }
                 // FIXED: 2017/6/13 rework
-                showDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+               //showDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+                UIUtil.showDialog(v,mActivity,mHandler, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+
                 break;
 
             case R.id.bt_send_data:
@@ -382,63 +387,6 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
             default:
                 break;
         }
-    }
-
-    /**
-     * 展示统一风格的对话框，其中包含对话框UI中的数据更新和不同对话框UI的替换
-     * @param view 传入的视图对象
-     * @param title 对话框的标题
-     * @param message 对话框的提示信息；其中只有清除所有和删除单个item有提示，其余都设置为GONE
-     * @param locationDevice 传入需要显示在对话框上UI的设备信息
-     * @param position LocationDevice在recyclerView中的位置，用来回传给fragment中的recyclerAdapter来更新视图
-     * @param flag 标志位，判断弹出对话框的类型
-     */
-    private void showDialog(View view, String title, String message, LocationDevice locationDevice, final int position, final int flag) {
-
-        final EditDialog mEditDialog = new EditDialog(mActivity, title, message);
-        mEditDialog.setDeviceInfo(locationDevice);
-        mEditDialog.setFlag(flag);
-
-        //自定义窗体参数
-        WindowManager.LayoutParams attributes = mEditDialog.getWindow().getAttributes();
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        attributes.width = (int) (metrics.widthPixels * 0.9);
-        attributes.height = (int) (metrics.heightPixels * 0.9);
-        attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-        attributes.dimAmount = 0.5f;
-        mEditDialog.getWindow().setAttributes(attributes);
-
-        final LocationDevice[] tmpDevice = {new LocationDevice()};
-        //响应确定的点击事件
-        mEditDialog.setPositiveOnclickListener(new EditDialog.onPositiveOnclickListener() {
-            @Override
-            public void onPositiveClick() {
-                Message msg = Message.obtain();
-                if (flag == DELETE_ALL) {
-                    msg.what = flag;
-                    msg.obj = null;
-                    msg.arg1 = -1;
-                    mHandler.sendMessage(msg);
-                } else {
-                    tmpDevice[0] = mEditDialog.getDeviceInfo();
-                    msg.what = flag;
-                    msg.obj = tmpDevice[0];
-                    msg.arg1 = position;
-                    mHandler.sendMessage(msg);
-                }
-                mEditDialog.dismiss();
-            }
-        });
-
-        //响应取消键的点击事件
-        mEditDialog.setNegativeOnclickListener(new EditDialog.onNegativeOnclickListener() {
-            @Override
-            public void onNegativeClick() {
-                mEditDialog.dismiss();
-            }
-        });
-        //展示对话框
-        mEditDialog.show();
     }
 
     private static class RecyclerItemClickListener implements RecyclerView.OnItemTouchListener {
@@ -491,12 +439,32 @@ public class ListDeviceFragment extends Fragment implements View.OnClickListener
     public class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String deviceId = intent.getStringExtra("msg");
-            Message message = Message.obtain();
-            message.what = ON_SAVE_DATA;
-            message.obj = deviceId;
-            LogUtil.i("消息标志位"+message.what+" ,消息对象"+message.obj);
-            //mHandler.sendMessage(message);
+            int flag = intent.getIntExtra("flag",-1);
+
+            if(flag==ON_SAVE_DATA){
+                Bundle on_save_data = intent.getBundleExtra("on_save_data");
+                LocationDevice tmpDevice = (LocationDevice)on_save_data.getSerializable("on_save_data");
+
+                Message message = Message.obtain();
+                message.what = ON_SAVE_DATA;
+                message.obj = tmpDevice;
+
+              //  LogUtil.i("消息标志位 "+ message.what +" , 消息对象 "+message.obj);
+                mHandler.sendMessage(message);
+            }
+
+            if(flag==UNDO_SAVE){
+                Bundle on_save_data = intent.getBundleExtra("undo_save_device");
+                LocationDevice tmpDevice = (LocationDevice)on_save_data.getSerializable("undo_save_device");
+
+                Message message = Message.obtain();
+                message.what = UNDO_SAVE;
+                message.obj = tmpDevice;
+
+               // LogUtil.i("消息标志位 "+ message.what +" , 消息对象 "+message.obj);
+                mHandler.sendMessage(message);
+            }
+
         }
     }
 

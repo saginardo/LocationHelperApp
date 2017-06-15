@@ -40,8 +40,7 @@ public class LocationDevice implements Serializable {
         if(obj==null) return false;
         if(getClass() != obj.getClass()) return false;
         LocationDevice other = (LocationDevice)obj;
-        return Objects.equals(mId, other.mId)
-                && Objects.equals(mDeivceId,other.mDeivceId)
+        return  Objects.equals(mDeivceId,other.mDeivceId)
                 && Objects.equals(mMacAddress,other.mMacAddress)
                 && Objects.equals(mLatitude,other.mLatitude)
                 && Objects.equals(mLongitude,other.mLongitude);

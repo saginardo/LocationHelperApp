@@ -66,14 +66,15 @@ public class DeviceRawDao {
         db.close();
         return result;
     }
-    //按照设备自增序号删除
+
+    //按照设备自增序号删除,该方法是为了获得recyclerview中的position
     public int deleteById(int mId) {
 
         //执行sql语句需要sqliteDatabase对象
         //调用getReadableDatabase方法,来初始化数据库的创建
         SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
         //table ：表名, whereClause: 删除条件, whereArgs：条件的占位符的参数 ; 返回值：成功删除多少行
-        int result = db.delete("devices", "_id = ?", new String[]{mId+""});
+        int result = db.delete("devices", "_id = ?", new String[]{mId + ""});
         //关闭数据库对象
         db.close();
         return result;
@@ -109,7 +110,7 @@ public class DeviceRawDao {
 
         //table:表名, values：更新的值, whereClause:更新的条件, whereArgs：更新条件的占位符的值,
         // 返回值：成功修改多少行
-        int result = db.update("devices", values, "_id = ?", new String[]{bean.mId+""});
+        int result = db.update("devices", values, "_id = ?", new String[]{bean.mId + ""});
         //关闭数据库对象
         db.close();
         return result;
@@ -141,20 +142,55 @@ public class DeviceRawDao {
                 //LogUtil.i("查询到的设备：" + bean.mDeivceId + " " + bean.mMacAddress + "" + bean.mLatitude + " " + bean.mLongitude);
             }
             cursor.close();//关闭结果集
-
-        } else {
-            if(cursor!=null){
-                cursor.close();
-            }
             //关闭数据库对象
             db.close();
-            return null;
+            return bean;
+        }
+
+        if (cursor != null) {
+            cursor.close();
         }
         //关闭数据库对象
         db.close();
-        return bean;
+        return null;
     }
 
+
+    public LocationDevice queryLastSave() {
+
+        LocationDevice bean = new LocationDevice();
+        SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
+
+        //table:表名,
+        // columns：查询的列名,如果null代表查询所有列；
+        // selection:查询条件, selectionArgs：条件占位符的参数值,
+        // groupBy:按什么字段分组, having:分组的条件, orderBy:按什么字段排序
+        //Cursor cursor = db.query("devices", null,
+        //        "_id = ?", new String[]{"(select max(_id) from  devices)"}, null, null, null);
+        Cursor cursor = db.rawQuery("select * from devices where _id = (select max(_id) from  devices)", new String[]{});
+        //解析Cursor中的数据
+        if (cursor != null && cursor.getCount() > 0) {//判断cursor中是否存在数据
+            while (cursor.moveToNext()) {//条件，游标能否定位到下一行
+                //获取数据
+                bean.mId = cursor.getInt(0);
+                bean.mDeivceId = cursor.getString(1);
+                bean.mMacAddress = cursor.getString(2);
+                bean.mLatitude = cursor.getString(3);
+                bean.mLongitude = cursor.getString(4);
+            }
+            cursor.close();//关闭结果集
+            //关闭数据库对象
+            db.close();
+            return bean;
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+        //关闭数据库对象
+        db.close();
+        return null;
+    }
 
     public List<LocationDevice> queryAll() {
         List<LocationDevice> list = new ArrayList<>();
@@ -182,18 +218,17 @@ public class DeviceRawDao {
                 list.add(bean);
             }
             cursor.close();//关闭结果集
-
-        } else {
-
-            if(cursor!=null){
-                cursor.close();
-            }
             //关闭数据库对象
             db.close();
-            return null;
+            return list;
+        }
+
+        if (cursor != null) {
+            cursor.close();
         }
         //关闭数据库对象
         db.close();
         return list;
     }
+
 }

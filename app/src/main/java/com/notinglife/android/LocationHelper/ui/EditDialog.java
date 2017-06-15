@@ -74,7 +74,9 @@ public class EditDialog extends Dialog {
     private final static int DELETE_BY_ID = 0;
     private final static int DELETE_ALL = 1;
     private final static int UPDATE_DEVICE = 2;
-    private final static int UNDO_SAVE = 3;
+    private final static int ON_SAVE_DATA = 3; //触发保存数据的标志位
+    private final static int UNDO_SAVE = 4;
+    private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
     public EditDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);

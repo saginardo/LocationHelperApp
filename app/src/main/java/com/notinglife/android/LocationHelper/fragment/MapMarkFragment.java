@@ -56,15 +56,6 @@ public class MapMarkFragment extends Fragment {
         return view;
     }
 
-/*
-    @Override
-    public View initView() {
-        View view = View.inflate(mActivity, R.layout.fragment_map_mark, null);
-        ButterKnife.bind(this, view);
-        return view;
-    }
-*/
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -78,6 +69,27 @@ public class MapMarkFragment extends Fragment {
         mBaiduMap = mMapView.getMap();
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
     }
+
+
+    /*   @Override
+    protected void onResume() {
+        super.onResume();
+        //mMapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //  mMapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //mLocationClient.stop();
+        // mMapView.onDestroy();
+        // mBaiduMap.setMyLocationEnabled(false);
+    }*/
 
     /*    @Override
     public void initData() {

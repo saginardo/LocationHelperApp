@@ -14,11 +14,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -28,17 +26,15 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
-import com.baidu.mapapi.map.BaiduMap;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.ui.EditDialog;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
+import com.notinglife.android.LocationHelper.utils.UIUtil;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -89,23 +85,15 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
 
     private DeviceRawDao mDao;
     private LocationClient mLocationClient;
-    private List<String> permissionList;
-    private BaiduMap mBaiduMap;
-    private boolean isFirstLocate = true;
-    private boolean isFirstDrawPoint = true;
-    private boolean isFirstMark = true;
     private boolean isStopLocate = false;
 
     private LocationDevice mLocationDevice;
-    private LocationDevice tmpDevice;
+    private LocationDevice undoSaveDevice;
     private int mLocModeValue = -1;
     private EditDialog mEditDialog;
 
     private MyHandler mHandler;//用于更新UI的handler
-    private Handler handler; //用于传递数据的handler
-    public void setHandler(Handler handler){
-        this.handler = handler;
-    }
+
 
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
@@ -128,7 +116,7 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_acq_data,container,false);
+        View view = inflater.inflate(R.layout.fragment_acq_data, container, false);
         //View view = View.inflate(mActivity, R.layout.fragment_acq_data, null);
         ButterKnife.bind(this, view);
 
@@ -138,7 +126,7 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
         // FIXED: 2017/6/13 撤销对话框还没有重构
         mUndoSave.setOnClickListener(this);
         //设置输入框的属性
-        EditTextUtil.editTextToUpperCase(mDeviceId,mMacAddress_1, mMacAddress_2,
+        EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
         return view;
 
@@ -154,19 +142,6 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
         mLocationClient.registerLocationListener(new MyLocationListener());
         initLocation();
         mHandler = new MyHandler(ContentFragment.this);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        LogUtil.i("ContentFragment 已经Attach了");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        LogUtil.i("ContentFragment 已经Detach了");
-
     }
 
     private static class MyHandler extends Handler {
@@ -189,8 +164,16 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
                     int position = msg.arg1;
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null) {
-                        //撤销上一次保存设备
-                        fragment.mDao.deleteById(tmpDevice.mId);
+                        //fragment.mDao.deleteById(tmpDevice.mId); 这里应该让列表详情页去删除数据而不是这里删
+                        //还需要通知 recyclerview 删除对应元素
+                        Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
+                        intent.putExtra("flag", UNDO_SAVE);
+
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("undo_save_device",tmpDevice);
+                        intent.putExtra("undo_save_device",bundle);
+
+                        LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
                         ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
                     }
                 }
@@ -213,8 +196,6 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        List<LocationDevice> list = null;
-        LocationDevice deviceToDo = null;//查询出来的临时对象
 
         switch (v.getId()) {
             case R.id.bt_start_gps:
@@ -240,10 +221,6 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
 
             case R.id.bt_save_data:
 
-                Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
-                intent.putExtra("msg", "测试消息");
-                LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
-
                 if (!isStopLocate) {
                     // TODO: 2017/6/14 判断逻辑过重，考虑是否增加独立方法来判断
                     //mLocationDevice是new出来的，自身一定不为null，但是其属性值全为null
@@ -251,12 +228,9 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
                     if (!TextUtils.isEmpty(mLocationDevice.mLatitude)) {
 
                         String deviceId = mDeviceId.getText().toString();
-
-
                         String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
                                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
-                        LogUtil.i(macAddress);
                         if (deviceId.equals("")) {
                             ToastUtil.showShortToast(mActivity, "设备号码不能为空");
                             return;
@@ -269,34 +243,32 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
                             ToastUtil.showShortToast(mActivity, "MAC地址信息不全");
                             return;
                         }
-
                         mLocationDevice.mDeivceId = deviceId;
                         mLocationDevice.mMacAddress = macAddress;
-
-                        LogUtil.i("设备ID:" + mLocationDevice.mDeivceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
-                                + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
+                        //LogUtil.i("设备ID:" + mLocationDevice.mDeivceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
+                        //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
 
                         if (mLocationDevice.mLocMode != BDLocation.TypeGpsLocation) {
                             ToastUtil.showShortToast(mActivity, "请等待GPS定位数据");
                             return;
                         }
-
-                        deviceToDo = mDao.queryById(deviceId);
+                        LocationDevice deviceToDo = mDao.queryById(deviceId);
                         if (deviceToDo != null) {
                             ToastUtil.showShortToast(mActivity, "不能重复添加设备，请查看设备是否已保存");
                             return;
                         }
                         mDao.add(mLocationDevice);
-                        this.tmpDevice = new LocationDevice();
-                        this.tmpDevice = mLocationDevice;
+                        this.undoSaveDevice = mLocationDevice;
 
-                        //handler处理添加设备信息
-                        Message message = new Message();
-                        message.what = ON_SAVE_DATA;
-                        message.obj = mLocationDevice;
-                        if(handler!=null){
-                            handler.sendMessage(message);
-                        }
+                        //通知recyclerview刷新
+                        Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
+                        intent.putExtra("flag", ON_SAVE_DATA);
+
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("on_save_data",mLocationDevice);
+                        intent.putExtra("on_save_data",bundle);
+
+                        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
 
                         ToastUtil.showShortToast(mActivity, "添加设备信息成功");
                     } else {
@@ -309,20 +281,18 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.bt_undo_save:
+                LocationDevice tmpDevice = mDao.queryLastSave();
                 //// TODO: 2017/6/13 自增ID最大的是否是最近需要撤销的
-                // tmpDevice
-                if (tmpDevice == null) {
-                    ToastUtil.showShortToast(mActivity, "还未保存设备，无法撤销保存");
+                if (undoSaveDevice == null) {
+                    ToastUtil.showShortToast(mActivity, "当前还未保存，无法撤销");
                     return;
                 }
-                LogUtil.i(tmpDevice.toString());
-                deviceToDo = mDao.queryById(tmpDevice.mDeivceId);
-                if (deviceToDo == null) {
-                    ToastUtil.showShortToast(mActivity, "还未保存该设备，无法撤销保存");
-                    return;
+                if (tmpDevice.mDeivceId.equals(undoSaveDevice.mDeivceId)) {
+                    //LogUtil.i("等待撤销的对象 "+tmpDevice.toString());
+                    UIUtil.showDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
+                } else {
+                    ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
-                // FIXED: 2017/6/13 重构对话框
-                showDialog(v, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
 
             default:
                 break;
@@ -409,60 +379,5 @@ public class ContentFragment extends Fragment implements View.OnClickListener {
                 break;
             default:
         }
-    }
-
-    //还是通过 equals方法获取在mList中的位置
-    private void showDialog(View view, String title, String message, final LocationDevice locationDevice, final int position, final int flag) {
-
-        mEditDialog = new EditDialog(mActivity, title, message);
-        mEditDialog.setDeviceInfo(locationDevice);
-        mEditDialog.setFlag(flag);
-
-        //自定义窗体参数
-        WindowManager.LayoutParams attributes = mEditDialog.getWindow().getAttributes();
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        attributes.width = (int) (metrics.widthPixels * 0.9);
-        attributes.height = (int) (metrics.heightPixels * 0.9);
-        attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-        attributes.dimAmount = 0.5f;
-        mEditDialog.getWindow().setAttributes(attributes);
-
-        final LocationDevice[] tmpDevice = {new LocationDevice()};
-        //响应确定键的点击事件
-        mEditDialog.setPositiveOnclickListener(new EditDialog.onPositiveOnclickListener() {
-            @Override
-            public void onPositiveClick() {
-                Message msg = Message.obtain();
-                //清除所有数据的对话框
-                if (flag == DELETE_ALL) {
-                    msg.what = flag;
-                    msg.obj = null;
-                    msg.arg1 = -1;
-                    mHandler.sendMessage(msg);
-                } else if (flag == UNDO_SAVE) {
-                    //撤销保存对话框
-                    msg.what = flag;
-                    msg.obj = locationDevice;
-                    msg.arg1 = -1;
-                } else {
-                    tmpDevice[0] = mEditDialog.getDeviceInfo();
-                    msg.what = flag;
-                    msg.obj = tmpDevice[0];
-                    msg.arg1 = position;
-                    mHandler.sendMessage(msg);
-                }
-                mEditDialog.dismiss();
-            }
-        });
-
-        //响应取消键的点击事件
-        mEditDialog.setNegativeOnclickListener(new EditDialog.onNegativeOnclickListener() {
-            @Override
-            public void onNegativeClick() {
-                mEditDialog.dismiss();
-            }
-        });
-        //展示对话框
-        mEditDialog.show();
     }
 }

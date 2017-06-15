@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -30,24 +31,10 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG_ACQ_DATA = "TAG_ACQ_DATA";
-    private static final String TAG_MAP_MARK = "TAG_MAP_MARK";
-    private static final String TAG_LIST_DEVICE = "TAG_LIST_DEVICE";
-
-//    public LocationClient mLocationClient;
     private List<String> permissionList;
-/*    private BaiduMap mBaiduMap;
-    private boolean isFirstLocate = true;
-    private boolean isFirstDrawPoint = true;
-    private boolean isFirstMark = true;
-    private LocationDevice mLocationDevice;
-    private LocationDevice tmpDevice;
-    private int mLocModeValue = -1;
-    private LocalBroadcastManager broadcastManager;
-    private BroadcastReceiver mReceiver;*/
 
-/*    @BindView(R.id.toolBar)
-    Toolbar mToolbar;*/
+    @BindView(R.id.toolBar)
+    Toolbar mToolbar;
 
     @BindView(R.id.rg_bottom_button)
     RadioGroup mRadioGroup;
@@ -68,8 +55,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_content);
 
         ButterKnife.bind(this);
-
-        //setSupportActionBar(mToolbar);
+        setSupportActionBar(mToolbar);
         initPermission();
         initView();
 
@@ -78,13 +64,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
                 switch (checkedId) {
                     case R.id.rb_acq_data:
-                        mViewPager.setCurrentItem(0, false);
+                        mViewPager.setCurrentItem(0, true);
                         break;
                     case R.id.rb_mark_data:
-                        mViewPager.setCurrentItem(1, false);
+                        mViewPager.setCurrentItem(1, true);
                         break;
                     case R.id.rb_list_devices:
-                        mViewPager.setCurrentItem(2, false);
+                        mViewPager.setCurrentItem(2, true);
                         break;
                     default:
                         break;
@@ -160,27 +146,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        //mMapView.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        //  mMapView.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        //mLocationClient.stop();
-        // mMapView.onDestroy();
-        // mBaiduMap.setMyLocationEnabled(false);
-    }
-
+    //获取权限
     private void initPermission() {
         permissionList = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -198,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //获取到权限后回调
+    //获取权限后回调
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {

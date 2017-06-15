@@ -1,12 +1,17 @@
 package com.notinglife.android.LocationHelper.fragment;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentManager;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,15 +19,16 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.notinglife.android.LocationHelper.MainActivity;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
@@ -34,7 +40,6 @@ import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIUtil;
 
 import java.io.File;
-import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
@@ -50,7 +55,7 @@ import butterknife.ButterKnife;
  *          date 2017-06-13 19:31
  */
 
-public class ListDeviceFragment extends BaseFragment implements View.OnClickListener {
+public class ListDeviceFragment extends Fragment implements View.OnClickListener {
 
     @BindView(R.id.id_recyclerview)
     RecyclerView mRecyclerView;
@@ -96,12 +101,24 @@ public class ListDeviceFragment extends BaseFragment implements View.OnClickList
     private List<LocationDevice> mList;
     private DeviceRawDao mDao;
     private LinearLayoutManager mLayoutManager;
-    private LocalBroadcastManager broadcastManager;
+    //private LocalBroadcastManager broadcastManager;
     private MyHandler mHandler;
-
+    public Activity mActivity;
+    private ContentFragment mContentFragment;
+    private  LocalBroadcastManager broadcastManager;
+    private MyReceiver mReceiver;
 
     @Override
-    public View initView() {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivity = getActivity();
+
+
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = View.inflate(mActivity, R.layout.fragment_list_device, null);
         ButterKnife.bind(this, view);
 
@@ -173,33 +190,22 @@ public class ListDeviceFragment extends BaseFragment implements View.OnClickList
     }
 
     @Override
-    public void initData() {
-
-/*      //动态注册广播，以便通知设备的添加和删除，可以及时更新recyclerview
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //动态注册广播，以便通知设备的添加和删除，可以及时更新recyclerview
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.DATA_CHANGED");
         mReceiver = new MyReceiver();
-        broadcastManager.registerReceiver(mReceiver, filter);*/
-        // mHandler = new MyHandler(ListDeviceFragment.this);
-
+        broadcastManager.registerReceiver(mReceiver, filter);
+        //mHandler = new MyHandler(ListDeviceFragment.this);
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        MainActivity mainActivity = (MainActivity) context;
-        FragmentManager fm = mainActivity.getSupportFragmentManager();
-        ContentFragment contentFragment = (ContentFragment) fm.findFragmentByTag(TAG_ACQ_DATA);
-        // 因为onAttach生命周期最靠前，它需要一个handler来设置给外界，所以handler放在了这里初始化
-        mHandler = new MyHandler(ListDeviceFragment.this);
-        contentFragment.setHandler(mHandler);
-    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // broadcastManager.unregisterReceiver(mReceiver);
+        broadcastManager.unregisterReceiver(mReceiver);
     }
 
 
@@ -263,8 +269,7 @@ public class ListDeviceFragment extends BaseFragment implements View.OnClickList
 
                 if (flag == ON_SAVE_DATA) {
                     LogUtil.i(msg.obj.toString());
-                    Serializable locationDevice = msg.getData().getSerializable("locationDevice");
-                    LogUtil.i("Bundle传递的对象"+locationDevice);
+
                     //收到contentFragment消息后更新 UI
                     List<LocationDevice> locationDevices = fragment.mDao.queryAll();
                     fragment.mList.clear();
@@ -480,6 +485,18 @@ public class ListDeviceFragment extends BaseFragment implements View.OnClickList
 
         @Override
         public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+        }
+    }
+
+    public class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String deviceId = intent.getStringExtra("msg");
+            Message message = Message.obtain();
+            message.what = ON_SAVE_DATA;
+            message.obj = deviceId;
+            LogUtil.i("消息标志位"+message.what+" ,消息对象"+message.obj);
+            //mHandler.sendMessage(message);
         }
     }
 

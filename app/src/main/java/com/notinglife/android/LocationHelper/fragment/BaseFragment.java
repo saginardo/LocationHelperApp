@@ -4,9 +4,16 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
+
+import com.notinglife.android.LocationHelper.R;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * ${DESCRIPTION}
@@ -18,17 +25,26 @@ import android.view.ViewGroup;
 
 public abstract class BaseFragment extends Fragment {
     public Activity mActivity;//这个activity就是MainActivity
+    public View mRootView;
+
+    @BindView(R.id.toolBar)
+    Toolbar mToolbar;
+    @BindView(R.id.rl_main_content)
+    RelativeLayout mRelativeLayout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = getActivity();//获取activity对象
+        //mRootView = initView();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return initView();
+        mRootView =inflater.inflate(R.layout.fragment_base,container,false);
+        ButterKnife.bind(this,mRootView);
+        return mRootView;
     }
     // fragment所依赖的activity的onCreate方法执行结束
     @Override
@@ -37,7 +53,6 @@ public abstract class BaseFragment extends Fragment {
         // 初始化数据
         initData();
     }
-
     // 初始化布局, 必须由子类实现
     public abstract View initView();
 

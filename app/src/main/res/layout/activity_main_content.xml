@@ -16,12 +16,17 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
     </android.support.v7.widget.Toolbar>
 
-    <RelativeLayout
-        android:id="@+id/rl_main_content"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vp_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-    </RelativeLayout>
+    </android.support.v4.view.ViewPager>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#d8d9d9"/>
 
     <RadioGroup
         android:id="@+id/rg_bottom_button"
@@ -35,22 +40,25 @@
         <RadioButton
             android:id="@+id/rb_acq_data"
             style="@style/Bottom_Tab_Style"
-            android:drawableTop="@drawable/data_acq"
+            android:checked="true"
+            android:drawableTop="@drawable/rb_chat_selector"
             android:text="@string/acq_data"
             android:textColor="@color/colorTextGray"
-            android:checked="true"
             android:weightSum="1"/>
+
         <View
             android:layout_width="1dp"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"/>
+
         <RadioButton
             android:id="@+id/rb_mark_data"
             style="@style/Bottom_Tab_Style"
-            android:drawableTop="@drawable/map_mark"
+            android:drawableTop="@drawable/rb_discovery_selector"
             android:text="@string/map_mark"
             android:textColor="@color/colorTextGray"
             android:weightSum="1"/>
+
         <View
             android:layout_width="1dp"
             android:layout_height="wrap_content"
@@ -59,7 +67,7 @@
         <RadioButton
             android:id="@+id/rb_list_devices"
             style="@style/Bottom_Tab_Style"
-            android:drawableTop="@drawable/devices"
+            android:drawableTop="@drawable/rb_me_selector"
             android:text="@string/devices"
             android:textColor="@color/colorTextGray"
             android:weightSum="1"/>

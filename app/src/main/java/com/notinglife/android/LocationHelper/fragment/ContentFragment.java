@@ -1,16 +1,23 @@
 package com.notinglife.android.LocationHelper.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,7 +51,7 @@ import butterknife.ButterKnife;
  *          date 2017-06-13 19:25
  */
 
-public class ContentFragment extends BaseFragment implements View.OnClickListener {
+public class ContentFragment extends Fragment implements View.OnClickListener {
 
 
     @BindView(R.id.tv_lat_info)
@@ -95,7 +102,6 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
     private EditDialog mEditDialog;
 
     private MyHandler mHandler;//用于更新UI的handler
-
     private Handler handler; //用于传递数据的handler
     public void setHandler(Handler handler){
         this.handler = handler;
@@ -109,11 +115,21 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
+
+    public Activity mActivity;
+
     @Override
-    public View initView() {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivity = getActivity();
+    }
 
-        View view = View.inflate(mActivity, R.layout.fragment_acq_data, null);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
+        View view = inflater.inflate(R.layout.fragment_acq_data,container,false);
+        //View view = View.inflate(mActivity, R.layout.fragment_acq_data, null);
         ButterKnife.bind(this, view);
 
         mStartLocation.setOnClickListener(this);
@@ -125,22 +141,33 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
         EditTextUtil.editTextToUpperCase(mDeviceId,mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
         return view;
+
     }
 
-
     @Override
-    public void initData() {
-
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         mDao = new DeviceRawDao(mActivity);
         //百度地图定位sdk初始化
         mLocationDevice = new LocationDevice();
         mLocationClient = new LocationClient(mActivity);
         mLocationClient.registerLocationListener(new MyLocationListener());
         initLocation();
-
         mHandler = new MyHandler(ContentFragment.this);
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        LogUtil.i("ContentFragment 已经Attach了");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        LogUtil.i("ContentFragment 已经Detach了");
+
+    }
 
     private static class MyHandler extends Handler {
 
@@ -213,6 +240,10 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
 
             case R.id.bt_save_data:
 
+                Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
+                intent.putExtra("msg", "测试消息");
+                LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
+
                 if (!isStopLocate) {
                     // TODO: 2017/6/14 判断逻辑过重，考虑是否增加独立方法来判断
                     //mLocationDevice是new出来的，自身一定不为null，但是其属性值全为null
@@ -259,12 +290,14 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
                         this.tmpDevice = new LocationDevice();
                         this.tmpDevice = mLocationDevice;
 
+                        //handler处理添加设备信息
                         Message message = new Message();
                         message.what = ON_SAVE_DATA;
                         message.obj = mLocationDevice;
                         if(handler!=null){
                             handler.sendMessage(message);
                         }
+
                         ToastUtil.showShortToast(mActivity, "添加设备信息成功");
                     } else {
                         ToastUtil.showShortToast(mActivity, "请先获取GPS地址");
@@ -296,7 +329,7 @@ public class ContentFragment extends BaseFragment implements View.OnClickListene
         }
     }
 
-    public class MyLocationListener implements BDLocationListener {
+    private class MyLocationListener implements BDLocationListener {
         @Override
         public void onReceiveLocation(final BDLocation bdLocation) {
 /*            if (bdLocation.getLocType() == BDLocation.TypeGpsLocation

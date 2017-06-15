@@ -3,12 +3,13 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="colorGray">#00dcdbdb</color>
     <color name="colorRed">#f73d40</color>
     <color name="colorLitleBlack">#333131</color>
     <color name="colorBlack">#000000</color>
     <color name="colorTextGray">#7D7D7D</color>
     <color name="colorWhite">#ffffff</color>
+    <color name="colorGreen">#45C01A</color>
+    <color name="colorGray">#999999</color>
 
 
 

@@ -1,7 +1,13 @@
 package com.notinglife.android.LocationHelper.fragment;
 
+import android.app.Activity;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.baidu.mapapi.map.BaiduMap;
@@ -23,7 +29,7 @@ import butterknife.ButterKnife;
  *          date 2017-06-13 19:30
  */
 
-public class MapMarkFragment extends BaseFragment {
+public class MapMarkFragment extends Fragment {
 
     @BindView(R.id.mapview)
     MapView mMapView;
@@ -34,15 +40,46 @@ public class MapMarkFragment extends BaseFragment {
     private DeviceRawDao mDao;
     private LocationDevice mLocationDevice;
     private BaiduMap mBaiduMap;
+    public Activity mActivity;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivity = getActivity();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = View.inflate(mActivity, R.layout.fragment_map_mark, null);
+        ButterKnife.bind(this, view);
+        return view;
+    }
+
+/*
     @Override
     public View initView() {
         View view = View.inflate(mActivity, R.layout.fragment_map_mark, null);
         ButterKnife.bind(this, view);
         return view;
     }
+*/
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //创建一个帮助类对象
+        MySqliteOpenHelper mySqliteOpenHelper = new MySqliteOpenHelper(mActivity);
+        //调用getReadableDatabase方法,来初始化数据库的创建
+        SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
+        mDao = new DeviceRawDao(mActivity);
+        mLocationDevice = new LocationDevice();
+
+        mBaiduMap = mMapView.getMap();
+        mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+    }
+
+    /*    @Override
     public void initData() {
 
         //创建一个帮助类对象
@@ -54,7 +91,7 @@ public class MapMarkFragment extends BaseFragment {
 
         mBaiduMap = mMapView.getMap();
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-    }
+    }*/
 
     @Override
     public void onDestroy() {

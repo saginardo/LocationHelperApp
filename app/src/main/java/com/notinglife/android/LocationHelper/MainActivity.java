@@ -221,10 +221,10 @@ public class MainActivity extends AppCompatActivity {
         WindowManager.LayoutParams attributes = dialogWindow.getAttributes();
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         attributes.width = (int) (metrics.widthPixels * 0.98);
-        attributes.height = (int) (metrics.heightPixels * 0.7);
+        attributes.height = (int) (metrics.heightPixels * 0.6);
         attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND; //设置背景模糊
         attributes.dimAmount = 0.5f;
-        attributes.alpha = 0.9f; //对话框透明度
+        //attributes.alpha = 0.9f; //对话框透明度
         mSearchDialog.getWindow().setAttributes(attributes);
 
 

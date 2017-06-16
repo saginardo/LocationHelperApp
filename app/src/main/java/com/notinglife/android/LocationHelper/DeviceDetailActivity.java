@@ -1,15 +1,10 @@
 package com.notinglife.android.LocationHelper;
 
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.baidu.mapapi.SDKInitializer;
@@ -30,16 +25,21 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
     public static final String LOCATIONDEVICE = "LOCATIONDEVICE";
 
-    @BindView(R.id.device_detail_image_view)
-    ImageView mDeviceDetailImageView;
-    @BindView(R.id.toolBar)
-    Toolbar mToolBar;
-    @BindView(R.id.collapsing_toolbar)
-    CollapsingToolbarLayout mCollapsingToolbar;
-    @BindView(R.id.device_detail_appBar)
-    AppBarLayout mDeviceDetailAppBar;
-    @BindView(R.id.fab)
-    FloatingActionButton mFab;
+    //@BindView(R.id.device_detail_image_view)
+    //ImageView mDeviceDetailImageView;
+    //@BindView(R.id.toolBar)
+    //Toolbar mToolBar;
+    //@BindView(R.id.collapsing_toolbar)
+   // CollapsingToolbarLayout mCollapsingToolbar;
+    //@BindView(R.id.device_detail_appBar)
+    //AppBarLayout mDeviceDetailAppBar;
+    //@BindView(R.id.fab)
+    //FloatingActionButton mFab;
+    @BindView(R.id.tv_device_backspace)
+    TextView mBackspace;
+
+    @BindView(R.id.tv_device_id)
+    TextView mTextView;
 
     @BindView(R.id.editText1)
     EditText mMacAddress_1;
@@ -61,9 +61,9 @@ public class DeviceDetailActivity extends AppCompatActivity {
     @BindView(R.id.mapview)
     MapView mMapView;
 
-
     private BaiduMap mBaiduMap;
     private Boolean isFirstLocate = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,21 +72,21 @@ public class DeviceDetailActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         SDKInitializer.initialize(getApplicationContext());
 
-        setSupportActionBar(mToolBar);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
-
 
         mBaiduMap = mMapView.getMap();
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-
-
+        //实现回退功能
+        mBackspace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         Bundle bundle = getIntent().getBundleExtra(LOCATIONDEVICE);
         LocationDevice locationdevice =(LocationDevice) bundle.getSerializable(LOCATIONDEVICE);
         if(locationdevice!=null){
-            mCollapsingToolbar.setTitle("设备编号:"+locationdevice.mDeivceId);
+            //mCollapsingToolbar.setTitle("设备编号:"+locationdevice.mDeivceId);
+            mTextView.setText("设备编号:"+locationdevice.mDeivceId);
 
             String macAddress = locationdevice.mMacAddress;
             String[] split = macAddress.split(":");

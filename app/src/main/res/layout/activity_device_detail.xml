@@ -1,200 +1,263 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
     android:orientation="vertical"
-    tools:context="com.notinglife.android.LocationHelper.DeviceDetailActivity">
+    android:fitsSystemWindows="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
-    <LinearLayout
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/device_detail_appBar"
+        android:fitsSystemWindows="true"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="250dp">
 
-        <TextView
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            android:fitsSystemWindows="true"
+            app:contentScrim="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <ImageView
+                android:id="@+id/device_detail_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax"
+                android:fitsSystemWindows="true"/>
+
+            <android.support.v7.widget.Toolbar
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:id="@+id/toolBar"
+                app:layout_collapseMode="pin">
+            </android.support.v7.widget.Toolbar>
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center"
-            android:text="设备列表"
-            android:textSize="22dp"/>
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_no_data"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="当前没有设备数据"
-            android:textSize="22dp"
-            android:visibility="gone"/>
-
-
-        <ScrollView
-            android:id="@+id/sv_devices"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1.80">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/id_recyclerview"
+            <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-            </android.support.v7.widget.RecyclerView>
+                android:layout_height="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="5dp"
+                app:cardElevation="5dp"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"
+                app:cardCornerRadius="5dp"
+                android:visibility="gone">
 
-        </ScrollView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
 
-    </LinearLayout>
+                    <TextView
+                        android:id="@+id/tv_device"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:text="设备编号: "
+                        android:textSize="18sp"/>
 
-    <LinearLayout
+                    <EditText
+                        android:id="@+id/tv_device_number"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="00001"
+                        android:maxLength="5"
+                        android:maxLines="1"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:textSize="16sp"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="5dp"
+                android:gravity="center_vertical"
+                app:cardElevation="5dp"
+                app:cardCornerRadius="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="MAC地址: "
+                        android:textSize="18sp"/>
+
+                    <EditText
+                        android:id="@+id/editText1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:hint="AA"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/editText2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="BB"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/editText3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="CC"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/editText4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="DD"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/editText5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="EE"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+
+                    <EditText
+                        android:id="@+id/editText6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="FF"
+                        android:maxLength="2"
+                        android:maxLines="1"
+                        android:textSize="16sp"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="10dp"
+                app:cardElevation="5dp"
+                app:cardCornerRadius="5dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_margin="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_lat"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:text="经度: "
+                        android:textSize="20sp"/>
+
+                    <TextView
+                        android:id="@+id/tv_lat_info"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:gravity="start"
+                        android:text="00.000000"
+                        android:textSize="16sp"/>
+
+                    <TextView
+                        android:id="@+id/tv_lng"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:text="纬度: "
+                        android:textSize="18sp"/>
+
+                    <TextView
+                        android:id="@+id/tv_lng_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="00.000000"
+                        android:textSize="16sp"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="10dp"
+                app:cardElevation="5dp"
+                app:cardCornerRadius="5dp">
+                <com.baidu.mapapi.map.MapView
+                    android:id="@+id/mapview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true">
+                </com.baidu.mapapi.map.MapView>
+            </android.support.v7.widget.CardView>
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_margin="30dp"
+        android:src="@drawable/ic_comment"
+        app:layout_anchor="@id/device_detail_appBar"
+        app:layout_anchorGravity="bottom|end"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="设备查询:"
-                android:textSize="15sp"/>
-
-            <EditText
-                android:id="@+id/et_query_id"
-                android:layout_width="70dp"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:maxLength="5"
-                android:hint="请输入ID"
-                android:textSize="14sp"
-                />
-
-            <Button
-                android:id="@+id/bt_query_by_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="查询数据"
-                />
-
-            <Button
-                android:id="@+id/bt_query_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="查询所有数据"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="设备删除:"
-                android:textSize="15sp"/>
-
-            <EditText
-                android:id="@+id/et_delete_id"
-                android:layout_width="70dp"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:maxLength="5"
-                android:hint="请输入ID"
-                android:textSize="14sp"
-                />
-
-            <Button
-                android:id="@+id/bt_delete_by_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="删除数据"
-                />
-
-            <Button
-                android:id="@+id/bt_delete_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="清除所有数据"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="设备更新:"
-                android:textSize="15sp"/>
-
-            <EditText
-                android:id="@+id/et_update_id"
-                android:layout_width="70dp"
-                android:maxLines="1"
-                android:maxLength="5"
-                android:layout_height="wrap_content"
-                android:hint="请输入ID"
-                android:textSize="14sp"
-                />
-
-            <Button
-                android:id="@+id/bt_update_by_id"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="更新数据"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginStart="5dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/bt_save_to_file"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="保存文件"
-                android:visibility="gone"/>
-
-            <Button
-                android:id="@+id/bt_send_data"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:textSize="16sp"
-                android:text="发送文件"/>
-        </LinearLayout>
-    </LinearLayout>
-
-
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

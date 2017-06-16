@@ -7,5 +7,5 @@
     <string name="negative_button">取消</string>
     <string name="map_mark">标注</string>
     <string name="devices">设备</string>
-    <string name="acq_data">采集</string>
+    <string name="acq_data">定位</string>
 </resources>

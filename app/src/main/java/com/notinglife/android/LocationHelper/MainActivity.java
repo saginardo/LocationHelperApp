@@ -1,8 +1,10 @@
 package com.notinglife.android.LocationHelper;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -13,14 +15,23 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.mapapi.SDKInitializer;
-import com.notinglife.android.LocationHelper.fragment.ContentFragment;
-import com.notinglife.android.LocationHelper.fragment.ListDeviceFragment;
+import com.notinglife.android.LocationHelper.fragment.AcqDataFragment;
+import com.notinglife.android.LocationHelper.fragment.DeviceListFragment;
 import com.notinglife.android.LocationHelper.fragment.MapMarkFragment;
+import com.notinglife.android.LocationHelper.ui.NoScrollViewPager;
+import com.notinglife.android.LocationHelper.ui.SearchDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.rg_bottom_button)
     RadioGroup mRadioGroup;
     @BindView(R.id.vp_content)
-    ViewPager mViewPager;
+    NoScrollViewPager mViewPager;
 
     private Fragment contentFragment;
     private Fragment mapMarkFragment;
@@ -52,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         //mLocationClient = new LocationClient(getApplicationContext());
         //mLocationClient.registerLocationListener(new MyLocationListener());
         SDKInitializer.initialize(getApplicationContext());
-        setContentView(R.layout.activity_main_content);
+        setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
@@ -64,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
                 switch (checkedId) {
                     case R.id.rb_acq_data:
-                        mViewPager.setCurrentItem(0, true);
+                        mViewPager.setCurrentItem(0, false);
                         break;
                     case R.id.rb_mark_data:
-                        mViewPager.setCurrentItem(1, true);
+                        mViewPager.setCurrentItem(1, false);
                         break;
                     case R.id.rb_list_devices:
-                        mViewPager.setCurrentItem(2, true);
+                        mViewPager.setCurrentItem(2, false);
                         break;
                     default:
                         break;
@@ -81,9 +92,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         allFragment = new ArrayList<>();
-        contentFragment = new ContentFragment();
+        contentFragment = new AcqDataFragment();
         mapMarkFragment = new MapMarkFragment();
-        listDeviceFragment = new ListDeviceFragment();
+        listDeviceFragment = new DeviceListFragment();
         allFragment.add(contentFragment);
         allFragment.add(mapMarkFragment);
         allFragment.add(listDeviceFragment);
@@ -91,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setAdapter(new MyFragmentPagerAdapter(this.getSupportFragmentManager(), allFragment));
         mViewPager.setCurrentItem(0);
         mViewPager.setOffscreenPageLimit(4);
+
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
             }
 
             @Override
@@ -143,7 +154,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar, menu);
+        //MenuItem menuItem = menu.findItem(R.id.search_button);//
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.search_button:
+                //startActivity(new Intent(MainActivity.this, StartSearchActivity.class));
+                showMyDialog(this,null,"测试标题","测试消息");
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     //获取权限
@@ -185,5 +208,39 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
         }
+    }
+
+
+    public static void showMyDialog( Activity activity, final Handler handler, String title, String message) {
+
+        final SearchDialog mSearchDialog = new SearchDialog(activity,R.layout.device_search_dialog);
+
+        //自定义窗体参数
+        Window dialogWindow = mSearchDialog.getWindow();
+        dialogWindow.setGravity(Gravity.TOP);
+        WindowManager.LayoutParams attributes = dialogWindow.getAttributes();
+        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        attributes.width = (int) (metrics.widthPixels * 0.98);
+        attributes.height = (int) (metrics.heightPixels * 0.7);
+        attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND; //设置背景模糊
+        attributes.dimAmount = 0.5f;
+        attributes.alpha = 0.9f; //对话框透明度
+        mSearchDialog.getWindow().setAttributes(attributes);
+
+
+        View view = mSearchDialog.getCustomView();
+        TextView mTextView = (TextView)view.findViewById(R.id.tv_backspace);
+        mTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSearchDialog.dismiss();
+            }
+        });
+
+
+
+
+        //展示对话框
+        mSearchDialog.show();
     }
 }

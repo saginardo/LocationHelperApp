@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fl_main_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+    </android.support.v7.widget.Toolbar>
+
+    <com.notinglife.android.LocationHelper.ui.NoScrollViewPager
+        android:id="@+id/vp_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+    </com.notinglife.android.LocationHelper.ui.NoScrollViewPager>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#d8d9d9"/>
+
+    <RadioGroup
+        android:id="@+id/rg_bottom_button"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:background="@drawable/bottom_group_bg"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <RadioButton
+            android:id="@+id/rb_acq_data"
+            style="@style/Bottom_Tab_Style"
+            android:checked="true"
+            android:drawableTop="@drawable/rb_acq_data"
+            android:text="@string/acq_data"
+            android:textColor="@drawable/rb_focus_color"
+            android:weightSum="1"/>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"/>
+
+        <RadioButton
+            android:id="@+id/rb_mark_data"
+            style="@style/Bottom_Tab_Style"
+            android:drawableTop="@drawable/rb_devices"
+            android:text="@string/map_mark"
+            android:textColor="@drawable/rb_focus_color"
+            android:weightSum="1"/>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"/>
+
+        <RadioButton
+            android:id="@+id/rb_list_devices"
+            style="@style/Bottom_Tab_Style"
+            android:drawableTop="@drawable/rb_me_selector"
+            android:text="@string/devices"
+            android:textColor="@drawable/rb_focus_color"
+            android:weightSum="1"/>
+    </RadioGroup>
+
+</LinearLayout>

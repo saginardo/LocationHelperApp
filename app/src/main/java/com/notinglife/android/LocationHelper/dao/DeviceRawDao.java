@@ -146,10 +146,6 @@ public class DeviceRawDao {
             db.close();
             return bean;
         }
-
-        if (cursor != null) {
-            cursor.close();
-        }
         //关闭数据库对象
         db.close();
         return null;
@@ -184,9 +180,6 @@ public class DeviceRawDao {
             return bean;
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
         //关闭数据库对象
         db.close();
         return null;
@@ -223,9 +216,6 @@ public class DeviceRawDao {
             return list;
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
         //关闭数据库对象
         db.close();
         return list;

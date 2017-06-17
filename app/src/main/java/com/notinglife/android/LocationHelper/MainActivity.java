@@ -77,10 +77,10 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.rb_acq_data:
                         mViewPager.setCurrentItem(0, false);
                         break;
-                    case R.id.rb_mark_data:
+                    case R.id.rb_devices:
                         mViewPager.setCurrentItem(1, false);
                         break;
-                    case R.id.rb_list_devices:
+                    case R.id.rb_my_page:
                         mViewPager.setCurrentItem(2, false);
                         break;
                     default:
@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
         mapMarkFragment = new MapMarkFragment();
         listDeviceFragment = new DeviceListFragment();
         allFragment.add(contentFragment);
-        allFragment.add(mapMarkFragment);
         allFragment.add(listDeviceFragment);
+        allFragment.add(mapMarkFragment);
 
         mViewPager.setAdapter(new MyFragmentPagerAdapter(this.getSupportFragmentManager(), allFragment));
         mViewPager.setCurrentItem(0);
@@ -115,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
                         mRadioGroup.check(R.id.rb_acq_data);
                         break;
                     case 1:
-                        mRadioGroup.check(R.id.rb_mark_data);
+                        mRadioGroup.check(R.id.rb_devices);
                         break;
                     case 2:
-                        mRadioGroup.check(R.id.rb_list_devices);
+                        mRadioGroup.check(R.id.rb_my_page);
                         break;
                     default:
                         break;
@@ -162,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.search_button:
-                //startActivity(new Intent(MainActivity.this, StartSearchActivity.class));
                 showMyDialog(this,null,"测试标题","测试消息");
                 return true;
         }
@@ -211,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //自定义搜索框
     public static void showMyDialog( Activity activity, final Handler handler, String title, String message) {
 
         final SearchDialog mSearchDialog = new SearchDialog(activity,R.layout.device_search_dialog);
@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
         dialogWindow.setGravity(Gravity.TOP);
         WindowManager.LayoutParams attributes = dialogWindow.getAttributes();
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
-        attributes.width = (int) (metrics.widthPixels * 0.98);
+        attributes.width = (int) (metrics.widthPixels * 0.95);
         attributes.height = (int) (metrics.heightPixels * 0.6);
         attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND; //设置背景模糊
         attributes.dimAmount = 0.5f;
@@ -236,9 +236,6 @@ public class MainActivity extends AppCompatActivity {
                 mSearchDialog.dismiss();
             }
         });
-
-
-
 
         //展示对话框
         mSearchDialog.show();

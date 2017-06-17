@@ -52,10 +52,10 @@
             android:background="#FFFFFF"/>
 
         <RadioButton
-            android:id="@+id/rb_mark_data"
+            android:id="@+id/rb_devices"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/rb_devices"
-            android:text="@string/map_mark"
+            android:text="设备"
             android:textColor="@drawable/rb_focus_color"
             android:weightSum="1"/>
 
@@ -65,10 +65,10 @@
             android:background="#FFFFFF"/>
 
         <RadioButton
-            android:id="@+id/rb_list_devices"
+            android:id="@+id/rb_my_page"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/rb_me_selector"
-            android:text="@string/devices"
+            android:text="我的"
             android:textColor="@drawable/rb_focus_color"
             android:weightSum="1"/>
     </RadioGroup>

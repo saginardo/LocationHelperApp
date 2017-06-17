@@ -45,8 +45,6 @@
             android:process=":remote">
         </service>
 
-        <activity android:name=".StartSearchActivity">
-        </activity>
         <activity android:name=".DeviceDetailActivity">
         </activity>
     </application>

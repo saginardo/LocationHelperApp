@@ -133,6 +133,7 @@ public class SearchDialog extends Dialog {
                 intent.putExtra(LOCATIONDEVICE,bundle);
                 intent.setClass(context,DeviceDetailActivity.class);
                 context.startActivity(intent);
+                // FIXME: 2017/6/16 用listener关闭搜索框
             }
         });
     }

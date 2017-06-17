@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -156,12 +154,13 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 @Override
                 public void onItemLongClick(View view, int position) {
                     //showDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
-                    UIUtil.showDialog(view, mActivity,mHandler,"修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
+                    UIUtil.showDialog(view, mActivity,mHandler,"删除设备信息", null, mList.get(position), position, DELETE_BY_ID);
 
                 }
             }));
 
-            ItemTouchHelper.SimpleCallback mCallback = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+            //滑动事件
+            /*ItemTouchHelper.SimpleCallback mCallback = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
                     ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) {
                 @Override
                 public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -188,7 +187,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
             };
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mCallback);
-            itemTouchHelper.attachToRecyclerView(mRecyclerView);
+            itemTouchHelper.attachToRecyclerView(mRecyclerView);*/
         }
         return view;
     }

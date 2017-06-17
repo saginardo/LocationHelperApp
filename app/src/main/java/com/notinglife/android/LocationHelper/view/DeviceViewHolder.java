@@ -1,4 +1,4 @@
-package com.notinglife.android.LocationHelper.ui;
+package com.notinglife.android.LocationHelper.view;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;

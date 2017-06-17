@@ -16,12 +16,12 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
     </android.support.v7.widget.Toolbar>
 
-    <com.notinglife.android.LocationHelper.ui.NoScrollViewPager
+    <com.notinglife.android.LocationHelper.view.NoScrollViewPager
         android:id="@+id/vp_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-    </com.notinglife.android.LocationHelper.ui.NoScrollViewPager>
+    </com.notinglife.android.LocationHelper.view.NoScrollViewPager>
 
     <View
         android:layout_width="match_parent"

@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.ui.EditDialog;
+import com.notinglife.android.LocationHelper.view.EditDialog;
 
 /**
  * ${DESCRIPTION}
@@ -38,7 +38,7 @@ public class UIUtil {
      * @param position       LocationDevice在recyclerView中的位置，用来回传给fragment中的recyclerAdapter来更新视图
      * @param flag           标志位，判断弹出对话框的类型
      */
-    public static void showDialog(View view, Activity activity, final Handler handler, String title, String message, final LocationDevice locationDevice, final int position, final int flag) {
+    public static void showEditDialog(View view, Activity activity, final Handler handler, String title, String message, final LocationDevice locationDevice, final int position, final int flag) {
 
         final EditDialog mEditDialog = new EditDialog(activity, title, message);
         mEditDialog.setDeviceInfo(locationDevice);

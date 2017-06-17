@@ -1,10 +1,10 @@
-package com.notinglife.android.LocationHelper;
+package com.notinglife.android.LocationHelper.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -27,11 +27,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.fragment.AcqDataFragment;
 import com.notinglife.android.LocationHelper.fragment.DeviceListFragment;
 import com.notinglife.android.LocationHelper.fragment.MapMarkFragment;
-import com.notinglife.android.LocationHelper.ui.NoScrollViewPager;
-import com.notinglife.android.LocationHelper.ui.SearchDialog;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.view.NoScrollViewPager;
+import com.notinglife.android.LocationHelper.view.SearchDialog;
+import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +45,6 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<String> permissionList;
 
     @BindView(R.id.toolBar)
     Toolbar mToolbar;
@@ -52,10 +54,20 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.vp_content)
     NoScrollViewPager mViewPager;
 
+    //startActivityForResult 标志位
+    private final static int REQUEST_CODE = 1028;
+    private final static int REQUEST_IMAGE = 1029;
+    private final static int RESULT_FROM_GALLERY = 1030;
+    private final static int REQUEST_FROM_TOOLBAR = 1031;
+    private final static int RESULT_FROM_TOOLBAR = 1032;
+
     private Fragment contentFragment;
     private Fragment mapMarkFragment;
     private Fragment listDeviceFragment;
     private List<Fragment> allFragment;
+    private List<String> permissionList;
+    private MyFragmentPagerAdapter mFragmentPagerAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
         //mLocationClient.registerLocationListener(new MyLocationListener());
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
+
+        ZXingLibrary.initDisplayOpinion(this);
 
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
@@ -92,14 +106,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         allFragment = new ArrayList<>();
+
         contentFragment = new AcqDataFragment();
-        mapMarkFragment = new MapMarkFragment();
         listDeviceFragment = new DeviceListFragment();
+        mapMarkFragment = new MapMarkFragment();
+
         allFragment.add(contentFragment);
         allFragment.add(listDeviceFragment);
         allFragment.add(mapMarkFragment);
-
-        mViewPager.setAdapter(new MyFragmentPagerAdapter(this.getSupportFragmentManager(), allFragment));
+        mFragmentPagerAdapter = new MyFragmentPagerAdapter(this.getSupportFragmentManager(), allFragment);
+        mViewPager.setAdapter(mFragmentPagerAdapter);
         mViewPager.setCurrentItem(0);
         mViewPager.setOffscreenPageLimit(4);
 
@@ -124,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             }
+
             @Override
             public void onPageScrollStateChanged(int state) {
 
@@ -161,9 +178,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.search_button:
-                showMyDialog(this,null,"测试标题","测试消息");
+            case R.id.menu_search_button:
+                showSearchDialog(this);
                 return true;
+            case R.id.menu_scan_code:
+                //扫码
+                Intent intent = new Intent(this, CaptureActivity.class);
+                startActivityForResult(intent, REQUEST_CODE);
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -171,12 +194,19 @@ public class MainActivity extends AppCompatActivity {
     //获取权限
     private void initPermission() {
         permissionList = new ArrayList<>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.READ_PHONE_STATE);
         }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionList.add(Manifest.permission.CAMERA);
+        }
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
@@ -211,9 +241,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     //自定义搜索框
-    public static void showMyDialog( Activity activity, final Handler handler, String title, String message) {
+    public static void showSearchDialog(Activity activity) {
 
-        final SearchDialog mSearchDialog = new SearchDialog(activity,R.layout.device_search_dialog);
+        final SearchDialog mSearchDialog = new SearchDialog(activity, R.layout.device_search_dialog);
 
         //自定义窗体参数
         Window dialogWindow = mSearchDialog.getWindow();
@@ -229,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         View view = mSearchDialog.getCustomView();
-        TextView mTextView = (TextView)view.findViewById(R.id.tv_backspace);
+        TextView mTextView = (TextView) view.findViewById(R.id.tv_backspace);
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -240,4 +270,24 @@ public class MainActivity extends AppCompatActivity {
         //展示对话框
         mSearchDialog.show();
     }
+
+    @Override
+    public void onActivityResult(final int requestCode, final int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
+
+        if (requestCode == REQUEST_CODE || requestCode == REQUEST_IMAGE || resultCode== RESULT_FROM_GALLERY) {
+            item.onActivityResult(requestCode, resultCode, data);
+            //LogUtil.i(resultCode+"-----");
+
+        }
+        LogUtil.i("resultCode "+ resultCode);
+        if(resultCode == RESULT_FROM_TOOLBAR){
+            LogUtil.i("Mainactivity---"+ data.getData().toString());
+            item.setIntentData(data);
+        }
+    }
+
+
 }

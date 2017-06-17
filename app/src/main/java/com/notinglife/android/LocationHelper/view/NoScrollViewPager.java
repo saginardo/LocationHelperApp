@@ -1,4 +1,4 @@
-package com.notinglife.android.LocationHelper.ui;
+package com.notinglife.android.LocationHelper.view;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;

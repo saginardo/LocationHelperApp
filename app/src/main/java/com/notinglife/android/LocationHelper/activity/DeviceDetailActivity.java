@@ -1,4 +1,4 @@
-package com.notinglife.android.LocationHelper;
+package com.notinglife.android.LocationHelper.activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +15,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 
 import butterknife.BindView;

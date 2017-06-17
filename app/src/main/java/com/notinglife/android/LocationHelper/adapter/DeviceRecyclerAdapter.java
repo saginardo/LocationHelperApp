@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.ui.DeviceViewHolder;
+import com.notinglife.android.LocationHelper.view.DeviceViewHolder;
 
 import java.util.List;
 

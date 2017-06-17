@@ -3,20 +3,20 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/search_button"
+        android:id="@+id/menu_search_button"
         android:icon="@mipmap/ic_action_search"
-        android:title="备份"
+        android:title="搜索"
         app:showAsAction="always"/>
 
     <item
-        android:id="@+id/backup"
+        android:id="@+id/menu_backup"
         android:icon="@drawable/ic_backup"
         android:title="备份"
         app:showAsAction="never"/>
     <item
-        android:id="@+id/delete"
+        android:id="@+id/menu_scan_code"
         android:icon="@drawable/ic_delete"
-        android:title="删除"
+        android:title="扫一扫"
         app:showAsAction="never"/>
     <item
         android:id="@+id/settings"

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.notinglife.android.LocationHelper.MainActivity">
+    tools:context="com.notinglife.android.LocationHelper.activity.MainActivity">
 
 
     <LinearLayout
@@ -14,34 +14,24 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="这是设备列表界面"
-            android:textSize="30sp"
-            android:layout_gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:gravity="center"
-            android:visibility="gone"/>
+            android:text="设备列表"
+            android:textSize="22dp"/>
+
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
             android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:gravity="center"
-                android:text="设备列表"
-                android:textSize="22dp"/>
 
             <TextView
                 android:id="@+id/tv_no_data"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="当前没有设备数据"
                 android:textSize="22dp"
@@ -54,17 +44,21 @@
                 android:layout_height="0dp"
                 android:layout_weight="1.80">
 
-                <android.support.v7.widget.RecyclerView
+                <com.notinglife.android.LocationHelper.view.EmptyRecyclerView
                     android:id="@+id/id_recyclerview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                </android.support.v7.widget.RecyclerView>
+                </com.notinglife.android.LocationHelper.view.EmptyRecyclerView>
 
             </ScrollView>
 
+            <include
+                android:id="@+id/id_empty_view"
+                layout="@layout/layout_empty_view"/>
+
         </LinearLayout>
 
-        <LinearLayout
+        <!--<LinearLayout
             android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -208,7 +202,7 @@
                     android:textSize="16sp"
                     android:text="发送文件"/>
             </LinearLayout>
-        </LinearLayout>
+        </LinearLayout>-->
 
     </LinearLayout>
 

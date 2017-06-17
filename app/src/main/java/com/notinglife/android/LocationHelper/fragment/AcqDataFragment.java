@@ -3,13 +3,13 @@ package com.notinglife.android.LocationHelper.fragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,12 +28,16 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.activity.CaptureActivity;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.ui.EditDialog;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
+import com.notinglife.android.LocationHelper.utils.ImageUtil;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIUtil;
+import com.notinglife.android.LocationHelper.view.EditDialog;
+import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import java.lang.ref.WeakReference;
 
@@ -83,6 +88,19 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     @BindView(R.id.bt_undo_save)
     Button mUndoSave;
 
+    @BindView(R.id.edt_content)
+    EditText mContent;
+
+    @BindView(R.id.btn_create)
+    Button mCreate;
+    @BindView(R.id.btn_scan)
+    Button mScan;
+    @BindView(R.id.iv_image)
+    ImageView mImage;
+    @BindView(R.id.btn_scan_from_gallery)
+    Button mFromGallery;
+
+
     private DeviceRawDao mDao;
     private LocationClient mLocationClient;
     private boolean isStopLocate = false;
@@ -102,6 +120,15 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int ON_SAVE_DATA = 3; //触发保存数据的标志位
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
+    private final static int ON_RECEIVE_SCAN_RESULT = 6;
+
+
+    //startActivityForResult 标志位
+    private final static int REQUEST_CODE = 1028;
+    private final static int REQUEST_IMAGE = 1029;
+    private final static int RESULT_FROM_GALLERY = 1030;
+    private final static int REQUEST_FROM_TOOLBAR = 1031;
+    private final static int RESULT_FROM_TOOLBAR = 1032;
 
 
     public Activity mActivity;
@@ -128,9 +155,14 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         //设置输入框的属性
         EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
+
+        mCreate.setOnClickListener(this);
+        mScan.setOnClickListener(this);
+        mFromGallery.setOnClickListener(this);
         return view;
 
     }
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -170,8 +202,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         intent.putExtra("flag", UNDO_SAVE);
 
                         Bundle bundle = new Bundle();
-                        bundle.putSerializable("undo_save_device",tmpDevice);
-                        intent.putExtra("undo_save_device",bundle);
+                        bundle.putSerializable("undo_save_device", tmpDevice);
+                        intent.putExtra("undo_save_device", bundle);
 
                         LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
                         ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
@@ -180,14 +212,43 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 //接收到位置信息回调，更新UI中textviw数据
                 if (flag == ON_RECEIVE_LOCATION_DATA) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    fragment.mLatTextView.setText(tmpDevice.mLatitude);
-                    fragment.mLngTextView.setText(tmpDevice.mLongitude);
-                    fragment.mRadiusValue.setText(tmpDevice.mRadius + "米");
+                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeivceId)) {
+                        fragment.mLatTextView.setText(tmpDevice.mLatitude);
+                        fragment.mLngTextView.setText(tmpDevice.mLongitude);
+                        fragment.mRadiusValue.setText(tmpDevice.mRadius + "米");
 
-                    if (tmpDevice.mLocMode == BDLocation.TypeGpsLocation) {
-                        fragment.mLocMode.setText("GPS定位");
-                    } else {
-                        fragment.mLocMode.setText("网络定位");
+                        if (tmpDevice.mLocMode == BDLocation.TypeGpsLocation) {
+                            fragment.mLocMode.setText("GPS定位");
+                        } else {
+                            fragment.mLocMode.setText("网络定位");
+                        }
+                    }
+                }
+                if (flag == ON_RECEIVE_SCAN_RESULT) {
+                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
+
+                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeivceId)) {
+                        fragment.mDeviceId.setText(tmpDevice.mDeivceId);
+                        String macAddress = tmpDevice.mMacAddress; //66:JJ:KK:HD:FK:11
+                        String[] split = macAddress.split(":");
+                        if (split.length == 6) {
+                            fragment.mMacAddress_1.setText(split[0]);
+                            fragment.mMacAddress_2.setText(split[1]);
+                            fragment.mMacAddress_3.setText(split[2]);
+                            fragment.mMacAddress_4.setText(split[3]);
+                            fragment.mMacAddress_5.setText(split[4]);
+                            fragment.mMacAddress_6.setText(split[5]);
+                            ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析成功");
+                        } else {
+                            fragment.mDeviceId.setText("");
+                            fragment.mMacAddress_1.setText("");
+                            fragment.mMacAddress_2.setText("");
+                            fragment.mMacAddress_3.setText("");
+                            fragment.mMacAddress_4.setText("");
+                            fragment.mMacAddress_5.setText("");
+                            fragment.mMacAddress_6.setText("");
+                            ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析错误，请检查二维码是否合法");
+                        }
                     }
                 }
             }
@@ -265,8 +326,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         intent.putExtra("flag", ON_SAVE_DATA);
 
                         Bundle bundle = new Bundle();
-                        bundle.putSerializable("on_save_data",mLocationDevice);
-                        intent.putExtra("on_save_data",bundle);
+                        bundle.putSerializable("on_save_data", mLocationDevice);
+                        intent.putExtra("on_save_data", bundle);
 
                         LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
 
@@ -289,10 +350,39 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 }
                 if (tmpDevice.mDeivceId.equals(undoSaveDevice.mDeivceId)) {
                     //LogUtil.i("等待撤销的对象 "+tmpDevice.toString());
-                    UIUtil.showDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
+                    UIUtil.showEditDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
                 } else {
                     ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
+                break;
+
+            case R.id.btn_create:
+                //生成二维码
+                String textContent = mContent.getText().toString();
+                if (TextUtils.isEmpty(textContent)) {
+                    Toast.makeText(mActivity, "您的输入为空!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                mContent.setText("");
+                //带LOGO
+                //Bitmap mBitmap = CodeUtils.createImage(textContent, 400, 400, BitmapFactory.decodeResource(getResources(), R.drawable.launcher));
+                //不带LOGO
+                Bitmap mBitmap = CodeUtils.createImage(textContent, 400, 400, null);
+                mImage.setVisibility(View.VISIBLE);
+                mImage.setImageBitmap(mBitmap);
+
+                break;
+            case R.id.btn_scan:
+                //扫码
+                Intent intent = new Intent(mActivity, CaptureActivity.class);
+                startActivityForResult(intent, REQUEST_CODE);
+                break;
+
+            case R.id.btn_scan_from_gallery:
+                Intent intentFromGallery = new Intent(Intent.ACTION_GET_CONTENT);
+                intentFromGallery.addCategory(Intent.CATEGORY_OPENABLE);
+                intentFromGallery.setType("image/*");
+                startActivityForResult(intentFromGallery, REQUEST_IMAGE);
 
             default:
                 break;
@@ -358,26 +448,101 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     }
 
 
-    //获取到权限后回调
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 1:
-                if (grantResults.length > 0) {
-                    for (int result : grantResults) {
-                        if (result != PackageManager.PERMISSION_GRANTED) {
-                            Toast.makeText(mActivity, "必须同意所以权限", Toast.LENGTH_LONG).show();
-                            //finish();
-                            return;
-                        }
-                    }
-                    initLocation();
-                } else {
-                    //finish();
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+
+        if (requestCode == REQUEST_CODE ) {
+            //处理扫描结果（在界面上显示）
+            if (null != data) {
+                Bundle bundle = data.getExtras();
+                if (bundle == null) {
+                    return;
                 }
-                break;
-            default:
+                if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_SUCCESS) {
+                    String result = bundle.getString(CodeUtils.RESULT_STRING);
+                    //Toast.makeText(mActivity, "解析222结果:" + result, Toast.LENGTH_LONG).show();
+                    sendHandlerMsg(result);
+
+
+                } else if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_FAILED) {
+                    ToastUtil.showShortToast(mActivity, "解析二维码失败");
+                }
+            }
+        }
+
+        if (requestCode == REQUEST_IMAGE || resultCode == RESULT_FROM_GALLERY) {
+            if (data != null) {
+                Uri uri = data.getData();
+                try {
+                    CodeUtils.analyzeBitmap(ImageUtil.getImageAbsolutePath(mActivity, uri), new CodeUtils.AnalyzeCallback() {
+                        @Override
+                        public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
+                            LogUtil.i(result+"##########");
+                            sendHandlerMsg(result);
+                        }
+
+                        @Override
+                        public void onAnalyzeFailed() {
+                            Toast.makeText(mActivity, "扫描图片二维码失败", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
     }
+
+    //解析二维码结果，拆分字符串，并发送给handler
+    private void sendHandlerMsg(String result) {
+        if (!TextUtils.isEmpty(result)) {
+            String[] split1 = result.split(":");
+            if (!split1[0].equals("LocationHelper")) {
+                ToastUtil.showShortToast(mActivity, "不支持该格式的二维码，请检查二维码是否正确");
+            } else {
+                String[] split2 = result.split("//"); //
+                String split3 = split2[1]; //00010#66:JJ:KK:HD:FK:11
+                String[] split4 = split3.split("#");
+                LocationDevice locationDevice = new LocationDevice();
+                locationDevice.mDeivceId = split4[0];
+                locationDevice.mMacAddress = split4[1];
+
+                Message tmpMsg = Message.obtain();
+                tmpMsg.what = ON_RECEIVE_SCAN_RESULT;
+                tmpMsg.obj = locationDevice;
+                mHandler.sendMessage(tmpMsg);
+            }
+        }
+    }
+    private Intent mIntent;
+    public void setIntentData(Intent intent){
+        mIntent = intent;
+        if (mIntent != null) {
+            Uri uri = mIntent.getData();
+            LogUtil.i("Toolbar结果"+uri.toString());
+            try {
+                CodeUtils.analyzeBitmap(ImageUtil.getImageAbsolutePath(mActivity, uri), new CodeUtils.AnalyzeCallback() {
+                    @Override
+                    public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
+                        LogUtil.i(result+"##########");
+                        sendHandlerMsg(result);
+                    }
+
+                    @Override
+                    public void onAnalyzeFailed() {
+                        Toast.makeText(mActivity, "扫描图片222二维码失败", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 }

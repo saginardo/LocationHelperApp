@@ -11,7 +11,7 @@
     <color name="colorGreen">#45C01A</color>
     <color name="colorBlue">#33b4e4</color>
     <color name="colorGray">#999999</color>
-
+    <color name="scan_corner_color">#0effc2</color>
 
 
 </resources>

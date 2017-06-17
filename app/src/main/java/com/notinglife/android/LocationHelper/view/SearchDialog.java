@@ -1,4 +1,4 @@
-package com.notinglife.android.LocationHelper.ui;
+package com.notinglife.android.LocationHelper.view;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -18,7 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.notinglife.android.LocationHelper.DeviceDetailActivity;
+import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
@@ -63,6 +63,7 @@ public class SearchDialog extends Dialog {
         this.context = context;
 
     }
+
     public SearchDialog(Context context, int theme){
         super(context, theme);
         this.context = context;

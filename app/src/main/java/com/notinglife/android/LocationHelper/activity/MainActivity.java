@@ -19,11 +19,9 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.mapapi.SDKInitializer;
@@ -67,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> allFragment;
     private List<String> permissionList;
     private MyFragmentPagerAdapter mFragmentPagerAdapter;
-
-
+    private static final String TAG = "MainActivity";
+    private Activity mActivity;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         //mLocationClient.registerLocationListener(new MyLocationListener());
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
+
+        mActivity = this;
 
         ZXingLibrary.initDisplayOpinion(this);
 
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_search_button:
-                showSearchDialog(this);
+                showSearchDialog(mActivity);
                 return true;
             case R.id.menu_scan_code:
                 //扫码
@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
     //自定义搜索框
     public static void showSearchDialog(Activity activity) {
 
-        final SearchDialog mSearchDialog = new SearchDialog(activity, R.layout.device_search_dialog);
+        final SearchDialog mSearchDialog = new SearchDialog(activity, R.layout.device_mysearch_dialog);
 
         //自定义窗体参数
         Window dialogWindow = mSearchDialog.getWindow();
@@ -258,14 +258,14 @@ public class MainActivity extends AppCompatActivity {
         mSearchDialog.getWindow().setAttributes(attributes);
 
 
-        View view = mSearchDialog.getCustomView();
+/*        View view = mSearchDialog.getCustomView();
         TextView mTextView = (TextView) view.findViewById(R.id.tv_backspace);
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mSearchDialog.dismiss();
             }
-        });
+        });*/
 
         //展示对话框
         mSearchDialog.show();
@@ -276,17 +276,19 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
+        if(data!=null){  //避免直接返回，没有数据导致的空指针
+            if (requestCode == REQUEST_CODE || requestCode == REQUEST_IMAGE || resultCode== RESULT_FROM_GALLERY) {
+                item.onActivityResult(requestCode, resultCode, data);
+                //LogUtil.i(resultCode+"-----");
 
-        if (requestCode == REQUEST_CODE || requestCode == REQUEST_IMAGE || resultCode== RESULT_FROM_GALLERY) {
-            item.onActivityResult(requestCode, resultCode, data);
-            //LogUtil.i(resultCode+"-----");
+            }
+            LogUtil.i(TAG," resultCode "+ resultCode);
+            if(resultCode == RESULT_FROM_TOOLBAR){
+                LogUtil.i(TAG,"---"+ data.getData().toString());
+                item.setIntentData(data);
+            }
+        }
 
-        }
-        LogUtil.i("resultCode "+ resultCode);
-        if(resultCode == RESULT_FROM_TOOLBAR){
-            LogUtil.i("Mainactivity---"+ data.getData().toString());
-            item.setIntentData(data);
-        }
     }
 
 

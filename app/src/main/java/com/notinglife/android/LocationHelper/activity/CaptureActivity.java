@@ -31,7 +31,7 @@ public class CaptureActivity extends AppCompatActivity {
     Button mFromGallery;
 
     public static boolean isOpen = false;
-
+    private static final String TAG = "CaptureActivity";
     //startActivityForResult 标志位
     private final static int REQUEST_CODE = 1028;
     private final static int REQUEST_IMAGE = 1029;
@@ -92,7 +92,7 @@ public class CaptureActivity extends AppCompatActivity {
         }
         if( requestCode == REQUEST_FROM_TOOLBAR){
             //intent传递给MainActivity
-            LogUtil.i("CaptureActivity---"+data.getData().toString());
+            LogUtil.i(TAG," data.getData().toString()");
             this.setResult(RESULT_FROM_TOOLBAR, data);
             super.onActivityResult(requestCode, resultCode, data);
             finish();

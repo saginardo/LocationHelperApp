@@ -24,7 +24,7 @@ import java.util.List;
  */
 
 public class FileUtil {
-
+    private static final String TAG = "FileUtil";
     public static boolean saveToFile(Context context, LocationDevice locationDevice) {
 
         StringBuffer sb = new StringBuffer();
@@ -47,7 +47,7 @@ public class FileUtil {
                 bw.close();
                 return true;
             } else {
-                LogUtil.i("写入文件失败");
+                LogUtil.i(TAG,"  写入文件失败");
             }
 
         } catch (IOException e) {

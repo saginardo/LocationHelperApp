@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.MySqliteOpenHelper;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.List;
 public class DeviceRawDao {
 
     private MySqliteOpenHelper mySqliteOpenHelper;
-
+    private static final String TAG = "DeviceRawDao";
     public DeviceRawDao(Context context) {
         //创建一个帮助类对象
         mySqliteOpenHelper = new MySqliteOpenHelper(context);
@@ -89,7 +88,7 @@ public class DeviceRawDao {
         //table ：表名, whereClause: 删除条件, whereArgs：条件的占位符的参数 ; 返回值：成功删除多少行
         int result = db.delete("devices", null, null);
         //关闭数据库对象
-        LogUtil.i("成功删除" + result + "行");
+        //LogUtil.i(TAG,"成功删除" + result + "行");
         db.close();
         return result;
 

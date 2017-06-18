@@ -19,7 +19,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
@@ -78,8 +77,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
 
     @BindView(R.id.sv_devices)
     ScrollView mScrollView;
-    @BindView(R.id.tv_no_data)
-    TextView mTextView;
+/*    @BindView(R.id.tv_no_data)
+    TextView mTextView;*/
 
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;

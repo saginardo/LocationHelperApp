@@ -41,7 +41,8 @@ import butterknife.ButterKnife;
 public class SearchDialog extends Dialog {
 
 
-    public static final String LOCATIONDEVICE = "LOCATIONDEVICE";
+    private static final String LOCATIONDEVICE = "LOCATIONDEVICE";
+    private static final String TAG = "SearchDialog";
 
     private Context context;
     private View customView;
@@ -55,7 +56,7 @@ public class SearchDialog extends Dialog {
     ListView mListView;
     @BindView(R.id.emptyview)
     View mEmptyView;
-    @BindView(R.id.searchView)
+    @BindView(R.id.sv_searchView)
     SearchView mSearchView;
 
     public SearchDialog(Context context) {
@@ -67,8 +68,7 @@ public class SearchDialog extends Dialog {
     public SearchDialog(Context context, int theme){
         super(context, theme);
         this.context = context;
-        LayoutInflater inflater= LayoutInflater.from(context);
-        customView = inflater.inflate(R.layout.device_search_dialog, null);
+        customView = LayoutInflater.from(context).inflate(theme,null);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class SearchDialog extends Dialog {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
                 String deviceId = mDeviceIds.get(position);
-                LogUtil.i("传递的设备ID：" +deviceId);
+                LogUtil.i(TAG," 传递的设备ID：" +deviceId);
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(LOCATIONDEVICE,mLocationDevice);
                 intent.putExtra(LOCATIONDEVICE,bundle);

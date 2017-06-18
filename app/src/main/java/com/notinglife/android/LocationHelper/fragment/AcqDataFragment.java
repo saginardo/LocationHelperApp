@@ -109,9 +109,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private LocationDevice undoSaveDevice;
     private int mLocModeValue = -1;
     private EditDialog mEditDialog;
-
+    public Activity mActivity;
     private MyHandler mHandler;//用于更新UI的handler
-
+    private static final String TAG = "AcqDataFragment";
 
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
@@ -131,7 +131,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int RESULT_FROM_TOOLBAR = 1032;
 
 
-    public Activity mActivity;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -212,7 +211,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 //接收到位置信息回调，更新UI中textviw数据
                 if (flag == ON_RECEIVE_LOCATION_DATA) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeivceId)) {
+                    if (tmpDevice != null) {
                         fragment.mLatTextView.setText(tmpDevice.mLatitude);
                         fragment.mLngTextView.setText(tmpDevice.mLongitude);
                         fragment.mRadiusValue.setText(tmpDevice.mRadius + "米");
@@ -404,6 +403,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             Message locationMsg = Message.obtain();
             locationMsg.what = ON_RECEIVE_LOCATION_DATA;
             locationMsg.obj = mLocationDevice;
+            LogUtil.i(TAG," 百度SDK回显消息----"+mLocationDevice.toString());
             mHandler.sendMessage(locationMsg);
         }
 
@@ -452,7 +452,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-
         if (requestCode == REQUEST_CODE ) {
             //处理扫描结果（在界面上显示）
             if (null != data) {
@@ -462,10 +461,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 }
                 if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_SUCCESS) {
                     String result = bundle.getString(CodeUtils.RESULT_STRING);
-                    //Toast.makeText(mActivity, "解析222结果:" + result, Toast.LENGTH_LONG).show();
                     sendHandlerMsg(result);
-
-
                 } else if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_FAILED) {
                     ToastUtil.showShortToast(mActivity, "解析二维码失败");
                 }
@@ -479,7 +475,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     CodeUtils.analyzeBitmap(ImageUtil.getImageAbsolutePath(mActivity, uri), new CodeUtils.AnalyzeCallback() {
                         @Override
                         public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
-                            LogUtil.i(result+"##########");
                             sendHandlerMsg(result);
                         }
 
@@ -523,18 +518,16 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mIntent = intent;
         if (mIntent != null) {
             Uri uri = mIntent.getData();
-            LogUtil.i("Toolbar结果"+uri.toString());
             try {
                 CodeUtils.analyzeBitmap(ImageUtil.getImageAbsolutePath(mActivity, uri), new CodeUtils.AnalyzeCallback() {
                     @Override
                     public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
-                        LogUtil.i(result+"##########");
                         sendHandlerMsg(result);
                     }
 
                     @Override
                     public void onAnalyzeFailed() {
-                        Toast.makeText(mActivity, "扫描图片222二维码失败", Toast.LENGTH_LONG).show();
+                        Toast.makeText(mActivity, "扫描图片二维码失败", Toast.LENGTH_LONG).show();
                     }
                 });
 

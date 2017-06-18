@@ -28,21 +28,11 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_no_data"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="当前没有设备数据"
-                android:textSize="22dp"
-                android:visibility="gone"/>
-
-
             <ScrollView
                 android:id="@+id/sv_devices"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1.80">
+                android:layout_weight="1">
 
                 <com.notinglife.android.LocationHelper.view.EmptyRecyclerView
                     android:id="@+id/id_recyclerview"

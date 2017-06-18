@@ -16,6 +16,7 @@ import android.widget.Toast;
 public class ToastUtil {
     private static Toast toast;
     private static View view;
+    private static final String TAG = "ToastUtil";
 
     private ToastUtil() {
     }
@@ -55,7 +56,7 @@ public class ToastUtil {
             toast.setDuration(duration);
             toast.show();
         } catch (Exception e) {
-            LogUtil.d(e.getMessage());
+            LogUtil.d(TAG,e.getMessage());
         }
     }
 
@@ -69,7 +70,7 @@ public class ToastUtil {
             toast.setDuration(duration);
             toast.show();
         } catch (Exception e) {
-            LogUtil.d(e.getMessage());
+            LogUtil.d(TAG,e.getMessage());
         }
     }
 

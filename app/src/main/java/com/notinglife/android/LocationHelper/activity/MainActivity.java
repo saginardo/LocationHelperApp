@@ -19,9 +19,11 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.mapapi.SDKInitializer;
@@ -258,14 +260,14 @@ public class MainActivity extends AppCompatActivity {
         mSearchDialog.getWindow().setAttributes(attributes);
 
 
-/*        View view = mSearchDialog.getCustomView();
+        View view = mSearchDialog.getCustomView();
         TextView mTextView = (TextView) view.findViewById(R.id.tv_backspace);
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mSearchDialog.dismiss();
             }
-        });*/
+        });
 
         //展示对话框
         mSearchDialog.show();

@@ -18,8 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.LogUtil;

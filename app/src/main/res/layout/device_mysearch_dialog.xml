@@ -11,8 +11,6 @@
         android:orientation="vertical"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true">
-
-
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -27,8 +25,8 @@
                 android:drawableEnd="@mipmap/ic_action_arrow_left"/>
 
             <android.support.v7.widget.SearchView
-                android:layout_toRightOf="@id/tv_backspace"
-                android:id="@+id/searchView"
+                android:layout_toEndOf="@id/tv_backspace"
+                android:id="@+id/sv_searchView"
                 android:searchIcon="@drawable/ic_search"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"

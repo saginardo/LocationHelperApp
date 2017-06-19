@@ -9,10 +9,11 @@
         app:showAsAction="always"/>
 
     <item
-        android:id="@+id/menu_backup"
+        android:id="@+id/menu_sendFile"
         android:icon="@drawable/ic_backup"
         android:title="备份"
-        app:showAsAction="never"/>
+        app:showAsAction="always"/>
+
     <item
         android:id="@+id/menu_scan_code"
         android:icon="@drawable/ic_delete"

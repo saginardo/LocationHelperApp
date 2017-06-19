@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -28,14 +29,19 @@ import android.widget.Toast;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
+import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.fragment.AcqDataFragment;
 import com.notinglife.android.LocationHelper.fragment.DeviceListFragment;
-import com.notinglife.android.LocationHelper.fragment.MapMarkFragment;
+import com.notinglife.android.LocationHelper.fragment.MineFragment;
+import com.notinglife.android.LocationHelper.utils.FileUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.view.NoScrollViewPager;
 import com.notinglife.android.LocationHelper.view.SearchDialog;
 import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,13 +97,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
                 switch (checkedId) {
                     case R.id.rb_acq_data:
-                        mViewPager.setCurrentItem(0, false);
+                        mViewPager.setCurrentItem(0, true);
                         break;
                     case R.id.rb_devices:
-                        mViewPager.setCurrentItem(1, false);
+                        mViewPager.setCurrentItem(1, true);
                         break;
                     case R.id.rb_my_page:
-                        mViewPager.setCurrentItem(2, false);
+                        mViewPager.setCurrentItem(2, true);
                         break;
                     default:
                         break;
@@ -111,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         contentFragment = new AcqDataFragment();
         listDeviceFragment = new DeviceListFragment();
-        mapMarkFragment = new MapMarkFragment();
+        mapMarkFragment = new MineFragment();
 
         allFragment.add(contentFragment);
         allFragment.add(listDeviceFragment);
@@ -188,6 +194,30 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, CaptureActivity.class);
                 startActivityForResult(intent, REQUEST_CODE);
                 return true;
+            case R.id.menu_sendFile:
+                DeviceRawDao mDao = new DeviceRawDao(mActivity);
+                List<LocationDevice> mLocationDevices = mDao.queryAll();
+                if (mLocationDevices == null || mLocationDevices.size() == 0) {
+                    ToastUtil.showShortToast(mActivity, "当前没有数据，无法发送");
+                }else {
+                    FileUtil.saveListToFile(mActivity, mDao.queryAll());
+
+                    Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+                    String myFilePath = mActivity.getExternalFilesDir("data").getPath();
+                    File file = new File(myFilePath, "data.txt");
+                    if (file.exists()) {
+                        intentShareFile.setType("application/pdf");
+                        intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + file));
+                        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                                "Sharing File...");
+                        intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+                        startActivity(Intent.createChooser(intentShareFile, "Share File"));
+                    } else {
+                        ToastUtil.showShortToast(mActivity, "没有数据文件");
+                    }
+                }
+
+                break;
 
         }
         return super.onOptionsItemSelected(item);

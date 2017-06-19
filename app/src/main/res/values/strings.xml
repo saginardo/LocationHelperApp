@@ -8,4 +8,14 @@
     <string name="map_mark">标注</string>
     <string name="devices">设备</string>
     <string name="acq_data">定位</string>
+
+
+    <!--我的界面 颜色-->
+    <string name="mine_login_title">请登录系统</string>
+    <string name="mine_login_hint">登陆后同步云端</string>
+    <string name="mine_device_repair">待维护设备列表</string>
+    <string name="mine_main_info">我的详细信息</string>
+    <string name="mine_setting">设置</string>
+    <string name="mine_about">关于</string>
+
 </resources>

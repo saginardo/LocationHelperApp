@@ -12,6 +12,12 @@
     <color name="colorBlue">#33b4e4</color>
     <color name="colorGray">#999999</color>
     <color name="scan_corner_color">#0effc2</color>
+    <!--我的界面-->
+    <color name="mine_divider">#e7e4e4</color>
+    <color name="mine_button_background">#00000000</color>
+    <color name="mine_text_color">#767474</color>
 
+    <!--定位界面-->
+    <color name="bt_color">#e0e4e6</color>
 
 </resources>

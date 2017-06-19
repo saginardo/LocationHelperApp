@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +27,6 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.notinglife.android.LocationHelper.R;
-import com.notinglife.android.LocationHelper.activity.CaptureActivity;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
@@ -87,18 +85,20 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     Button mSaveButton;
     @BindView(R.id.bt_undo_save)
     Button mUndoSave;
-
+/*    @BindView(R.id.btn_createQRCode)
+    Button mCreate;*/
+/*
     @BindView(R.id.edt_content)
     EditText mContent;
 
-    @BindView(R.id.btn_create)
-    Button mCreate;
+
     @BindView(R.id.btn_scan)
     Button mScan;
     @BindView(R.id.iv_image)
     ImageView mImage;
     @BindView(R.id.btn_scan_from_gallery)
     Button mFromGallery;
+*/
 
 
     private DeviceRawDao mDao;
@@ -130,8 +130,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int REQUEST_FROM_TOOLBAR = 1031;
     private final static int RESULT_FROM_TOOLBAR = 1032;
 
-
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,11 +153,10 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
-        mCreate.setOnClickListener(this);
+ /*       mCreate.setOnClickListener(this);
         mScan.setOnClickListener(this);
-        mFromGallery.setOnClickListener(this);
+        mFromGallery.setOnClickListener(this);*/
         return view;
-
     }
 
 
@@ -354,8 +351,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
                 break;
-
-            case R.id.btn_create:
+/*
+            case R.id.btn_createQRCode:
                 //生成二维码
                 String textContent = mContent.getText().toString();
                 if (TextUtils.isEmpty(textContent)) {
@@ -370,8 +367,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 mImage.setVisibility(View.VISIBLE);
                 mImage.setImageBitmap(mBitmap);
 
-                break;
-            case R.id.btn_scan:
+                break;*/
+            /*case R.id.btn_scan:
                 //扫码
                 Intent intent = new Intent(mActivity, CaptureActivity.class);
                 startActivityForResult(intent, REQUEST_CODE);
@@ -380,8 +377,10 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             case R.id.btn_scan_from_gallery:
                 Intent intentFromGallery = new Intent(Intent.ACTION_GET_CONTENT);
                 intentFromGallery.addCategory(Intent.CATEGORY_OPENABLE);
-                intentFromGallery.setType("image/*");
+                intentFromGallery.setType("image*//*");
                 startActivityForResult(intentFromGallery, REQUEST_IMAGE);
+                break;
+                */
 
             default:
                 break;
@@ -403,7 +402,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             Message locationMsg = Message.obtain();
             locationMsg.what = ON_RECEIVE_LOCATION_DATA;
             locationMsg.obj = mLocationDevice;
-            LogUtil.i(TAG," 百度SDK回显消息----"+mLocationDevice.toString());
+            LogUtil.i(TAG, " 百度SDK回显消息----" + mLocationDevice.toString());
             mHandler.sendMessage(locationMsg);
         }
 
@@ -452,7 +451,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_CODE ) {
+        if (requestCode == REQUEST_CODE) {
             //处理扫描结果（在界面上显示）
             if (null != data) {
                 Bundle bundle = data.getExtras();
@@ -513,8 +512,10 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             }
         }
     }
+
     private Intent mIntent;
-    public void setIntentData(Intent intent){
+
+    public void setIntentData(Intent intent) {
         mIntent = intent;
         if (mIntent != null) {
             Uri uri = mIntent.getData();

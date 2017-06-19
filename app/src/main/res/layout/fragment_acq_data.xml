@@ -18,12 +18,9 @@
         android:focusableInTouchMode="true"
         android:orientation="vertical">
 
-
-
-
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="5dp"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
@@ -35,7 +32,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
                 android:layout_marginStart="10dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
@@ -61,7 +60,7 @@
 
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="5dp"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
@@ -73,7 +72,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="10dp">
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="10dp"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/textView"
@@ -142,7 +143,7 @@
 
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="5dp"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
@@ -197,7 +198,7 @@
 
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="5dp"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
@@ -250,16 +251,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/bt_start_gps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
+                android:background="@drawable/btn_shape"
                 android:text="开始定位"
                 android:textSize="16sp"/>
 
@@ -267,27 +267,9 @@
                 android:id="@+id/bt_stop_gps"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
+                android:layout_marginStart="20dp"
+                android:background="@drawable/btn_shape"
                 android:text="停止定位"
-                android:textSize="16sp"/>
-
-            <Button
-                android:id="@+id/bt_save_data"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="保存数据"
-                android:textSize="16sp"/>
-
-            <Button
-                android:id="@+id/bt_undo_save"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="撤销保存"
                 android:textSize="16sp"/>
 
 
@@ -295,51 +277,29 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <EditText
-                android:id="@+id/edt_content"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="请输入内容"
-                android:visibility="gone"/>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btn_create"
-                android:layout_width="match_parent"
+                android:id="@+id/bt_save_data"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="生成二维码"
-                android:visibility="gone"/>
+                android:background="@drawable/btn_shape"
+                android:text="保存数据"
+                android:textSize="16sp"/>
 
             <Button
-                android:id="@+id/btn_scan"
-                android:layout_width="match_parent"
+                android:id="@+id/bt_undo_save"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="扫码"
-                android:visibility="gone"/>
-
-            <Button
-                android:id="@+id/btn_scan_from_gallery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="从相册选取二维码"
-                android:visibility="gone"/>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp">
-
-                <ImageView
-                    android:id="@+id/iv_image"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:visibility="gone"/>
-            </RelativeLayout>
+                android:layout_marginStart="20dp"
+                android:background="@drawable/btn_shape"
+                android:text="撤销保存"
+                android:textSize="16sp"/>
         </LinearLayout>
-
 
     </LinearLayout>
 

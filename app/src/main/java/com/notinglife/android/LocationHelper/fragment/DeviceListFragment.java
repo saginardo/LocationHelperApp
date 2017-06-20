@@ -88,6 +88,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
+    private static final String TAG = "DeviceListFragment";
+
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
     private DeviceRawDao mDao;
@@ -122,13 +124,15 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
 
         mLayoutManager = new LinearLayoutManager(mActivity);
         mRecyclerView.setLayoutManager(mLayoutManager);
+
         mDeviceRecyclerAdapter = new DeviceRecyclerAdapter(mActivity, mList);
         mRecyclerView.setAdapter(mDeviceRecyclerAdapter);
         mRecyclerView.setEmptyView(mEmptyView);
+
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(mActivity, mRecyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                // TODO: 2017/6/12 单击事件的处理，预计实现点击进入详情页修改
+                // FIXED: 2017/6/12 单击事件的处理，预计实现点击进入详情页修改
                 Intent intent = new Intent();
                 LocationDevice locationDevice = mList.get(position);
                 Bundle bundle = new Bundle();
@@ -182,7 +186,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        //动态注册广播，以便通知设备的添加和删除，可以及时更新recyclerview
+        //动态注册本地广播，以便通知设备的添加和删除，可以及时更新recyclerview
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.DATA_CHANGED");
@@ -433,7 +437,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    public class MyReceiver extends BroadcastReceiver {
+    private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             int flag = intent.getIntExtra("flag", -1);

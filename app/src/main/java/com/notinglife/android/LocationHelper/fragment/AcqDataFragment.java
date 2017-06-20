@@ -324,7 +324,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         Bundle bundle = new Bundle();
                         bundle.putSerializable("on_save_data", mLocationDevice);
                         intent.putExtra("on_save_data", bundle);
-
                         LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
 
                         ToastUtil.showShortToast(mActivity, "添加设备信息成功");
@@ -514,7 +513,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     }
 
     private Intent mIntent;
-
+    //从菜单设置的扫一扫
     public void setIntentData(Intent intent) {
         mIntent = intent;
         if (mIntent != null) {

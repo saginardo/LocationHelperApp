@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -27,6 +28,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVUser;
 import com.baidu.mapapi.SDKInitializer;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
@@ -67,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
     private final static int REQUEST_FROM_TOOLBAR = 1031;
     private final static int RESULT_FROM_TOOLBAR = 1032;
 
+    //登录登出标志位
+    private final static int ON_LOGIN = 10;
+    private final static int ON_LOGOUT = 11;
+
     private Fragment contentFragment;
     private Fragment mapMarkFragment;
     private Fragment listDeviceFragment;
@@ -75,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
     private MyFragmentPagerAdapter mFragmentPagerAdapter;
     private static final String TAG = "MainActivity";
     private Activity mActivity;
+    private MenuItem mLogoutMenuItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,7 +187,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar, menu);
-        //MenuItem menuItem = menu.findItem(R.id.search_button);//
+        if (AVUser.getCurrentUser() != null){
+            mLogoutMenuItem = menu.findItem(R.id.logout);
+            mLogoutMenuItem.setVisible(true);
+        }
         return true;
     }
 
@@ -218,7 +229,20 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 break;
+            case R.id.logout:
+                AVUser.logOut();
+                mLogoutMenuItem.setVisible(false);
+                //通知recyclerview刷新
+                Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
 
+                logoutIntent.putExtra("flag", ON_LOGOUT);
+                //Bundle bundle = new Bundle();
+                //bundle.putSerializable("on_save_data", mLocationDevice);
+                //logoutIntent.putExtra("on_save_data", bundle);
+                LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
+
+                ToastUtil.showShortToast(getApplicationContext(),"已登出本系统");
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

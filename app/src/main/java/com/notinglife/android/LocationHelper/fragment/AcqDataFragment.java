@@ -13,8 +13,10 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -87,6 +89,16 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     Button mSaveButton;
     @BindView(R.id.bt_undo_save)
     Button mUndoSave;
+    @BindView(R.id.acq_toolbar)
+    Toolbar mAcqToolbar;
+    @BindView(R.id.tv_lat)
+    TextView mTvLat;
+    @BindView(R.id.tv_lng)
+    TextView mTvLng;
+    @BindView(R.id.tv_loc_mode)
+    TextView mTvLocMode;
+    @BindView(R.id.tv_loc_radius)
+    TextView mTvLocRadius;
 
 
     private DeviceRawDao mDao;
@@ -123,6 +135,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = getActivity();
+
+
     }
 
     @Nullable
@@ -151,7 +165,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mDao = new DeviceRawDao(mActivity);
 
         List<LocationDevice> locationDevices = mDao.queryWithLimit("0,5");
-        LogUtil.i(TAG,locationDevices.toString());
+        LogUtil.i(TAG, locationDevices.toString());
 
         //百度地图定位sdk初始化
         mLocationDevice = new LocationDevice();
@@ -159,14 +173,42 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mLocationClient.registerLocationListener(new MyLocationListener());
         initLocation();
         mHandler = new MyHandler(AcqDataFragment.this);
+
+/*        //在onActivityCreated后才能设置actionbar
+        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
+        ((AppCompatActivity)mActivity).setSupportActionBar(mAcqToolbar);
+        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
+        supportActionBar.setTitle("数据采集");*/
+        mAcqToolbar.setTitle("数据采集");
+        mAcqToolbar.inflateMenu(R.menu.acq_data_toolbar);
+        mAcqToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.menu_search_button:
+                        LogUtil.i(TAG,"搜索按钮点击了");
+                        break;
+                    case R.id.menu_scan_code:
+                        LogUtil.i(TAG,"扫一扫按钮点击了");
+                        break;
+                    case R.id.settings:
+                        LogUtil.i(TAG,"设置按钮点击了");
+                        break;
+                }
+                return false;
+            }
+        });
     }
-
-
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         mLocationClient.stop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
     private static class MyHandler extends Handler {
@@ -303,13 +345,13 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
                     //ID不能重复添加
                     LocationDevice deviceToDo1 = mDao.queryById(deviceId);
-                    if (deviceToDo1 != null ) {
+                    if (deviceToDo1 != null) {
                         ToastUtil.showShortToast(mActivity, "不能重复添加相同ID的设备");
                         return;
                     }
                     //MAC地址不能重复添加
                     LocationDevice deviceToDo2 = mDao.queryByMac(macAddress);
-                    if(deviceToDo2 != null){
+                    if (deviceToDo2 != null) {
                         ToastUtil.showShortToast(mActivity, "不能重复添加相同MAC地址的设备");
                         return;
                     }
@@ -332,7 +374,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
                     ToastUtil.showShortToast(mActivity, "添加设备信息成功");
                 } else {
-                    ToastUtil.showShortToast(mActivity, "请重新获取定位信息");
+                    ToastUtil.showShortToast(mActivity, "已停止定位，请重新获取定位信息");
                 }
                 break;
 

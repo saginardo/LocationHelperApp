@@ -11,7 +11,9 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -23,6 +25,7 @@ import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
 import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
 import com.notinglife.android.LocationHelper.utils.UIUtil;
@@ -62,6 +65,8 @@ public class MineFragment extends Fragment {
     RelativeLayout mRlUserInfo;
     @BindView(R.id.mine_logout)
     Button mMineLogout;
+    @BindView(R.id.mine_toolBar)
+    Toolbar mMineToolBar;
 
 
     private Activity mActivity;
@@ -116,7 +121,7 @@ public class MineFragment extends Fragment {
         mMineLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UIUtil.showConfirmDialog(mActivity,mHandler,"注销登录","请确认是否退出登录？");
+                UIUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
                 //下面2行代码放在handler中执行更新ui
                 //UIRefreshUtil.onLogout(mActivity.getApplicationContext());
                 //ToastUtil.showShortToast(mActivity, "已登出本系统");
@@ -143,6 +148,29 @@ public class MineFragment extends Fragment {
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(MineFragment.this);
+
+/*        //在onActivityCreated后才能设置actionbar
+        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
+        ((AppCompatActivity) mActivity).setSupportActionBar(mMineToolBar);
+        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
+        supportActionBar.setTitle("用户中心");*/
+        mMineToolBar.setTitle("用户中心");
+        mMineToolBar.inflateMenu(R.menu.mine_toolbar);
+        mMineToolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.menu_logout:
+                        LogUtil.i(TAG,"退出登录按钮点击了");
+                        break;
+
+                    case R.id.settings:
+                        LogUtil.i(TAG,"设置按钮点击了");
+                        break;
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -172,7 +200,7 @@ public class MineFragment extends Fragment {
                     fragment.mMineLogout.setVisibility(View.GONE);
                 }
 
-                if(flag == ON_CONFIRM_LOGOUT){
+                if (flag == ON_CONFIRM_LOGOUT) {
                     //对话框确认键被点击，触发注销操作和本地广播的发送，
                     UIRefreshUtil.onLogout(fragment.mActivity.getApplicationContext());
                     ToastUtil.showShortToast(fragment.mActivity, "已注销登录");

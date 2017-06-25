@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_search_button"
+        android:icon="@mipmap/ic_action_search"
+        android:title="搜索"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/menu_edit_mode"
+        android:icon="@drawable/ic_delete"
+        android:title="编辑模式"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/ic_settings"
+        android:title="设置"
+        android:visible="false"
+        app:showAsAction="never"/>
+
+</menu>

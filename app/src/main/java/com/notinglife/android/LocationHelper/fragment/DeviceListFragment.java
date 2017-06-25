@@ -14,8 +14,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,7 @@ import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
 import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIUtil;
 import com.notinglife.android.LocationHelper.view.EmptyRecyclerView;
@@ -67,6 +70,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int ON_EDIT_DEVICE = 7;
     @BindView(R.id.swipe_fresh)
     SwipeRefreshLayout mSwipeFresh;
+    @BindView(R.id.device_list_toolBar)
+    Toolbar mDeviceListToolBar;
 
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
@@ -151,7 +156,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
             };
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mCallback);
             itemTouchHelper.attachToRecyclerView(mRecyclerView);*/
-       
+
         //下拉刷新逻辑
         mSwipeFresh.setColorSchemeResources(R.color.colorPrimaryDark);
         mSwipeFresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -168,9 +173,9 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try{
+                try {
                     Thread.sleep(1000);
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 mActivity.runOnUiThread(new Runnable() {
@@ -198,7 +203,33 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(DeviceListFragment.this);
+
+/*        //在onActivityCreated后才能设置actionbar
+        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
+        ((AppCompatActivity) mActivity).setSupportActionBar(mDeviceListToolBar);
+        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
+        supportActionBar.setTitle("设备列表");*/
+        mDeviceListToolBar.setTitle("设备列表");
+        mDeviceListToolBar.inflateMenu(R.menu.device_list_toolbar);
+        mDeviceListToolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.menu_search_button:
+                        LogUtil.i(TAG,"搜索按钮点击了");
+                        break;
+                    case R.id.menu_edit_mode:
+                        LogUtil.i(TAG,"编辑按钮点击了");
+                        break;
+                    case R.id.settings:
+                        LogUtil.i(TAG,"设置按钮点击了");
+                        break;
+                }
+                return false;
+            }
+        });
     }
+
 
 
     @Override

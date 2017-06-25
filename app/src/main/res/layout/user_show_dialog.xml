@@ -5,25 +5,26 @@
                 android:background="#11ffffff">
 
     <LinearLayout
-        android:layout_width="260dp"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
         android:background="@drawable/edit_dialog_bg"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
 
         <TextView
-            android:id="@+id/tv_edit_device_title"
+            android:id="@+id/tv_edit_user_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="16dp"
             android:gravity="center"
-            android:text="修改设备信息"
+            android:text="修改用户信息"
             android:textColor="#38ADFF"
             android:textSize="16sp"/>
 
         <TextView
-            android:id="@+id/tv_is_delete_all"
+            android:id="@+id/tv_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -35,101 +36,80 @@
             android:visibility="gone"/>
 
         <RelativeLayout
-            android:id="@+id/rl_device_id"
+            android:id="@+id/rl_user_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/tv_device_id"
+                android:id="@+id/tv_username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
-                android:text="设备ID:"
-                android:textColor="@color/colorBlack"/>
+                android:textColor="@color/colorBlack"
+                android:text="当前用户为:"/>
 
             <EditText
-                android:id="@+id/et_device_id"
+                android:id="@+id/tv_user_name_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/tv_device_id"
+                android:layout_toEndOf="@id/tv_username"
                 android:background="@null"
-                android:text="00001"
+                android:text="testuser"
                 android:textColor="@color/colorTextGray"
                 android:textSize="14sp"/>
-
         </RelativeLayout>
 
 
         <RelativeLayout
-            android:id="@+id/rl_device_lat_lng"
+            android:id="@+id/rl_user_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/tv_device_lat"
+                android:id="@+id/tv_user_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
                 android:textColor="@color/colorBlack"
-                android:text="经度:"/>
+                android:text="请输入新邮箱:"/>
 
             <EditText
-                android:id="@+id/et_device_lat"
+                android:id="@+id/tv_user_email_info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/tv_device_lat"
+                android:layout_toEndOf="@id/tv_user_email"
                 android:background="@null"
                 android:textColor="@color/colorTextGray"
-                android:text="00.000000"
-                android:textSize="14sp"/>
-
-            <TextView
-                android:id="@+id/tv_device_lng"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="5dp"
-                android:layout_toRightOf="@id/et_device_lat"
-                android:textColor="@color/colorBlack"
-                android:text="纬度:"/>
-
-            <EditText
-                android:id="@+id/et_device_lng"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/tv_device_lng"
-                android:background="@null"
-                android:text="00.000000"
-                android:textColor="@color/colorTextGray"
+                android:maxLines="1"
                 android:textSize="14sp"/>
         </RelativeLayout>
-
         <RelativeLayout
-            android:id="@+id/rl_device_mac"
+            android:id="@+id/rl_user_email_repeat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/tv_device_mac"
+                android:id="@+id/tv_user_email_repeat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
                 android:textColor="@color/colorBlack"
-                android:text="MAC地址:"/>
+                android:text="请再输入一次:"/>
 
             <EditText
-                android:id="@+id/et_device_mac"
+                android:id="@+id/tv_user_email_info_repeat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/tv_device_mac"
+                android:layout_toEndOf="@id/tv_user_email_repeat"
                 android:background="@null"
-                android:text="00:00:00:00:00:00"
                 android:textColor="@color/colorTextGray"
+                android:maxLines="1"
                 android:textSize="14sp"/>
         </RelativeLayout>
+
 
         <View
             android:layout_width="match_parent"

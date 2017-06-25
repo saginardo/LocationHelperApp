@@ -3,12 +3,14 @@ package com.notinglife.android.LocationHelper.activity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -23,15 +25,24 @@ import android.widget.TextView;
 
 import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
 import com.avos.avoscloud.RequestEmailVerifyCallback;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.avos.avoscloud.AVException.EMAIL_NOT_FOUND;
+import static com.avos.avoscloud.AVException.USERNAME_PASSWORD_MISMATCH;
+import static com.avos.avoscloud.AVException.USER_DOESNOT_EXIST;
 
 /**
  * ${DESCRIPTION}
@@ -63,6 +74,7 @@ public class LoginActivity extends AppCompatActivity {
     ScrollView mScLoginForm;
     @BindView(R.id.email_resend_button)
     Button mEmailResendButton;
+    private Context mContext;
 
 
     @Override
@@ -70,6 +82,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+
+        mContext = getApplicationContext();
 
         if (AVUser.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -101,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-                LoginActivity.this.finish();
+                //LoginActivity.this.finish();//如果取消注册还需要回到登录界面，所以不弹出LoginActivity
             }
         });
 
@@ -136,8 +150,8 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void done(AVUser avUser, AVException e) {
                     if (e == null) {
-                        LoginActivity.this.finish();
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        LoginActivity.this.finish();
                     } else {
                         showProgress(false);
                         switch (e.getCode()) {
@@ -147,13 +161,31 @@ public class LoginActivity extends AppCompatActivity {
                                 mEmailResendButton.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        //邮箱还没有验证，点击后重新请求邮箱验证码
-                                        AVUser.requestEmailVerifyInBackground("abc@xyz.com", new RequestEmailVerifyCallback() {
+                                        //邮箱还没有验证，点击后重新请求邮箱验证码，
+                                        // FIXED: 2017/6/23
+                                        final String[] userEmail = new String[1];
+                                        AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
+                                        userEmailQuery.whereEqualTo("targetUserName",username);
+                                        userEmailQuery.findInBackground(new FindCallback<AVObject>() {
                                             @Override
-                                            public void done(AVException e) {
-                                                if (e == null) {
-                                                    // 求重发验证邮件成功
-                                                    ToastUtil.showShortToast(getApplicationContext(), "验证邮件已经重新发送，请检查注册邮箱");
+                                            public void done(List<AVObject> list, AVException e) {
+                                                if(list!=null && list.size()>0){
+                                                    AVObject avObject = list.get(0);
+                                                    userEmail[0] = avObject.getString("emailAddress");
+
+                                                    if(!TextUtils.isEmpty(userEmail[0])) {
+                                                        AVUser.requestEmailVerifyInBackground(userEmail[0], new RequestEmailVerifyCallback() {
+                                                            @Override
+                                                            public void done(AVException e) {
+                                                                if (e == null) {
+                                                                    //求重发验证邮件成功
+                                                                    ToastUtil.showShortToast(mContext, "验证邮件已经重新发送，请检查注册邮箱");
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }else {
+                                                    ToastUtil.showShortToast(getApplicationContext(),"没有查询到该用户，请检查用户名是否输入错误");
                                                 }
                                             }
                                         });
@@ -161,12 +193,13 @@ public class LoginActivity extends AppCompatActivity {
                                 });
 
                                 break;
-                            case 205:
-                                ToastUtil.showShortToast(getApplicationContext(),"该用户还未设置邮箱");
+                            case EMAIL_NOT_FOUND:
+                                ToastUtil.showShortToast(mContext,"该用户还未设置邮箱");
                                 break;
-                            case 211:
-                                ToastUtil.showShortToast(getApplicationContext(),"该用户名尚未注册，请检查是否填写错误");
-
+                            case USER_DOESNOT_EXIST:
+                                ToastUtil.showShortToast(mContext,"该用户名尚未注册，请检查是否填写错误");
+                            case USERNAME_PASSWORD_MISMATCH:
+                                ToastUtil.showShortToast(mContext,"用户名或密码错误");
                             default:
                                 break;
                         }
@@ -218,8 +251,10 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

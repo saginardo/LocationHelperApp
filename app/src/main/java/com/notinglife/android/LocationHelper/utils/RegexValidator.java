@@ -1,7 +1,6 @@
 package com.notinglife.android.LocationHelper.utils;
 
 import java.util.regex.Pattern;
-
 /**
  * 校验器:利用正则表达式校验邮箱、手机号等
  *
@@ -11,14 +10,22 @@ import java.util.regex.Pattern;
  */
 
 public class RegexValidator {
+    private static final String TAG = "RegexValidator";
+
 
     /**
-     * 正则表达式:验证用户名(不包含中文和特殊字符)如果用户名使用手机号码或邮箱 则结合手机号验证和邮箱验证
+     * 匹配设备ID的正则，必须5位字母或数字
+     */
+    public static final String REGEX_DEVICE_ID ="[0-9a-zA-Z]{5}";
+
+    /**
+     * 正则表达式:验证用户名(不包含中文和特殊字符) 6到18位
+     * 如果用户名使用手机号码或邮箱 则结合手机号验证和邮箱验证
      */
     public static final String REGEX_USERNAME = "^[a-zA-Z]\\w{5,17}$";
 
     /**
-     * 正则表达式:验证密码(不包含特殊字符)
+     * 正则表达式:验证密码(不包含特殊字符) 6到16位
      */
     public static final String REGEX_PASSWORD = "^[a-zA-Z0-9]{6,16}$";
 
@@ -51,6 +58,12 @@ public class RegexValidator {
      * 正则表达式:验证IP地址
      */
     public static final String REGEX_IP_ADDR = "(2[5][0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})";
+
+
+    /**
+     * 正则表达式：验证MAC地址
+     */
+    public static final String REGEX_MAC_ADDR ="^([0-9a-fA-F]{2})(([/\\s:-][0-9a-fA-F]{2}){5})$";
 
     /**
      * 校验用户名
@@ -130,6 +143,14 @@ public class RegexValidator {
      */
     public static boolean isIPAddress(String ipAddress) {
         return Pattern.matches(REGEX_IP_ADDR, ipAddress);
+    }
+
+    public static boolean isMacAddress(String macAddress){
+        return Pattern.matches(REGEX_MAC_ADDR,macAddress);
+    }
+
+    public static boolean isDeviceID(String deviceID){
+        return Pattern.matches(REGEX_DEVICE_ID,deviceID);
     }
 
 }

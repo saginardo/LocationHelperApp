@@ -51,7 +51,7 @@
                         android:layout_height="wrap_content"
                         android:maxLength="5"
                         android:maxLines="1"
-                        android:text="00001"
+                        android:text="*****"
                         android:textColor="@color/colorPrimaryDark"
                         android:textSize="14sp"/>
 
@@ -70,7 +70,7 @@
                         android:layout_height="wrap_content"
                         android:maxLength="20"
                         android:maxLines="1"
-                        android:text="00:00:00:00:00:00"
+                        android:text="**:**:**:**:**:**"
                         android:textColor="@color/colorPrimaryDark"
                         android:textSize="14sp"/>
                 </LinearLayout>
@@ -109,7 +109,7 @@
                             android:id="@+id/tv_device_lat_info"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="定位中"
+                            android:text="**.******"
                             android:textSize="14sp"/>
 
 
@@ -125,7 +125,7 @@
                             android:id="@+id/tv_device_lng_info"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="定位中"
+                            android:text="**.******"
                             android:textSize="14sp"/>
                     </LinearLayout>
                 </LinearLayout>

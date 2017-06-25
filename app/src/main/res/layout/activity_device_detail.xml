@@ -1,251 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:fitsSystemWindows="true"
     android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:focusableInTouchMode="true"
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/ly_device"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/device_detail_toolBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimaryDark"
-        android:orientation="horizontal">
-        <TextView
-            android:id="@+id/tv_device_backspace"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="10dp"
-            android:drawableStart="@mipmap/ic_action_arrow_left_white"/>
-        <TextView
-            android:id="@+id/tv_device_id"
-            android:layout_width="wrap_content"
-            android:textColor="#FFFFFF"
-            android:layout_gravity="center_vertical"
-            android:gravity="center"
-            android:layout_marginStart="10dp"
-            android:textSize="22sp"
-            android:layout_height="wrap_content"/>
+        android:background="@color/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+    </android.support.v7.widget.Toolbar>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_device_id"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="设备编号: "
+                    android:textSize="18sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/tv_device_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="*****"
+                    android:maxLength="5"
+                    android:maxLines="1"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_device_mac"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="MAC地址: "
+                    android:textSize="18sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <EditText
+                    android:id="@+id/macEditText6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="**"
+                    android:maxLength="2"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="5dp"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="5dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_margin="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_lat"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="经度: "
+                    android:textSize="20sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <TextView
+                    android:id="@+id/tv_lat_info"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="start"
+                    android:text="**.******"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <TextView
+                    android:id="@+id/tv_lng"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="纬度: "
+                    android:textSize="18sp"
+                    android:textColor="@color/colorLitleBlack"/>
+
+                <TextView
+                    android:id="@+id/tv_lng_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="**.******"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorLitleBlack"/>
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="5dp"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="5dp">
+
+            <com.baidu.mapapi.map.MapView
+                android:id="@+id/mapview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true">
+            </com.baidu.mapapi.map.MapView>
+        </android.support.v7.widget.CardView>
     </LinearLayout>
 
-        <LinearLayout
-            android:layout_below="@id/ly_device"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
 
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="5dp"
-                app:cardElevation="5dp"
-                android:gravity="center_vertical"
-                android:layout_gravity="center_vertical"
-                app:cardCornerRadius="5dp"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_device"
-                        android:layout_width="80dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:text="设备编号: "
-                        android:textSize="18sp"/>
-
-                    <EditText
-                        android:id="@+id/tv_device_number"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="00001"
-                        android:maxLength="5"
-                        android:maxLines="1"
-                        android:minHeight="0dp"
-                        android:minWidth="0dp"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="5dp"
-                android:gravity="center_vertical"
-                app:cardElevation="5dp"
-                app:cardCornerRadius="5dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/textView"
-                        android:layout_width="80dp"
-                        android:layout_height="wrap_content"
-                        android:text="MAC地址: "
-                        android:textSize="18sp"/>
-
-                    <EditText
-                        android:id="@+id/editText1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:hint="AA"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-
-                    <EditText
-                        android:id="@+id/editText2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="BB"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-
-                    <EditText
-                        android:id="@+id/editText3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="CC"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-
-                    <EditText
-                        android:id="@+id/editText4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="DD"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-
-                    <EditText
-                        android:id="@+id/editText5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="EE"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-
-                    <EditText
-                        android:id="@+id/editText6"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="FF"
-                        android:maxLength="2"
-                        android:maxLines="1"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="10dp"
-                app:cardElevation="5dp"
-                app:cardCornerRadius="5dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_margin="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_lat"
-                        android:layout_width="50dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        android:text="经度: "
-                        android:textSize="20sp"/>
-
-                    <TextView
-                        android:id="@+id/tv_lat_info"
-                        android:layout_width="80dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:gravity="start"
-                        android:text="00.000000"
-                        android:textSize="16sp"/>
-
-                    <TextView
-                        android:id="@+id/tv_lng"
-                        android:layout_width="50dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:layout_marginTop="5dp"
-                        android:gravity="center"
-                        android:text="纬度: "
-                        android:textSize="18sp"/>
-
-                    <TextView
-                        android:id="@+id/tv_lng_info"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:text="00.000000"
-                        android:textSize="16sp"/>
-                </LinearLayout>
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="300dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="10dp"
-                app:cardElevation="5dp"
-                app:cardCornerRadius="5dp">
-                <com.baidu.mapapi.map.MapView
-                    android:id="@+id/mapview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clickable="true">
-                </com.baidu.mapapi.map.MapView>
-            </android.support.v7.widget.CardView>
-
-
-        </LinearLayout>
-
-
-<!--    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        android:src="@drawable/ic_comment"
-        app:layout_anchor="@id/device_detail_appBar"
-        app:layout_anchorGravity="bottom|end"/>-->
-
-</RelativeLayout>
+</LinearLayout>

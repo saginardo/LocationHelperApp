@@ -39,7 +39,7 @@ public class DeviceRecyclerAdapter extends RecyclerView.Adapter<DeviceViewHolder
     @Override
     public void onBindViewHolder(DeviceViewHolder holder, int position) {
         LocationDevice locationDevice = mList.get(position);
-        holder.mDeviceNumber.setText(locationDevice.mDeivceId);
+        holder.mDeviceNumber.setText(locationDevice.mDeviceID);
         holder.mMacAddress.setText(locationDevice.mMacAddress);
         holder.mDeviceLatitude.setText(locationDevice.mLatitude);
         holder.mDeviceLongitude.setText(locationDevice.mLongitude);

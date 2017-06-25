@@ -32,12 +32,14 @@ import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
 import com.notinglife.android.LocationHelper.utils.ImageUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIUtil;
-import com.notinglife.android.LocationHelper.view.EditDialog;
+import com.notinglife.android.LocationHelper.view.EditDeviceDialog;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -85,20 +87,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     Button mSaveButton;
     @BindView(R.id.bt_undo_save)
     Button mUndoSave;
-/*    @BindView(R.id.btn_createQRCode)
-    Button mCreate;*/
-/*
-    @BindView(R.id.edt_content)
-    EditText mContent;
-
-
-    @BindView(R.id.btn_scan)
-    Button mScan;
-    @BindView(R.id.iv_image)
-    ImageView mImage;
-    @BindView(R.id.btn_scan_from_gallery)
-    Button mFromGallery;
-*/
 
 
     private DeviceRawDao mDao;
@@ -108,11 +96,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private LocationDevice mLocationDevice;
     private LocationDevice undoSaveDevice;
     private int mLocModeValue = -1;
-    private EditDialog mEditDialog;
+    private EditDeviceDialog mEditDeviceDialog;
     public Activity mActivity;
     private MyHandler mHandler;//用于更新UI的handler
     private static final String TAG = "AcqDataFragment";
-
+    private Intent mIntent;
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
     private final static int DELETE_ALL = 1;
@@ -121,7 +109,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
     private final static int ON_RECEIVE_SCAN_RESULT = 6;
-
+    private final static int ON_EDIT_DEVICE = 7;
 
     //startActivityForResult 标志位
     private final static int REQUEST_CODE = 1028;
@@ -129,6 +117,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int RESULT_FROM_GALLERY = 1030;
     private final static int REQUEST_FROM_TOOLBAR = 1031;
     private final static int RESULT_FROM_TOOLBAR = 1032;
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -141,7 +130,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_acq_data, container, false);
-        //View view = View.inflate(mActivity, R.layout.fragment_acq_data, null);
         ButterKnife.bind(this, view);
 
         mStartLocation.setOnClickListener(this);
@@ -153,9 +141,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
- /*       mCreate.setOnClickListener(this);
-        mScan.setOnClickListener(this);
-        mFromGallery.setOnClickListener(this);*/
         return view;
     }
 
@@ -164,12 +149,24 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mDao = new DeviceRawDao(mActivity);
+
+        List<LocationDevice> locationDevices = mDao.queryWithLimit("0,5");
+        LogUtil.i(TAG,locationDevices.toString());
+
         //百度地图定位sdk初始化
         mLocationDevice = new LocationDevice();
         mLocationClient = new LocationClient(mActivity);
         mLocationClient.registerLocationListener(new MyLocationListener());
         initLocation();
         mHandler = new MyHandler(AcqDataFragment.this);
+    }
+
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mLocationClient.stop();
     }
 
     private static class MyHandler extends Handler {
@@ -192,7 +189,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     int position = msg.arg1;
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null) {
-                        //fragment.mDao.deleteById(tmpDevice.mId); 这里应该让列表详情页去删除数据而不是这里删
+                        //fragment.mDao.deleteById(tmpDevice.mID); 这里应该让列表详情页去删除数据而不是这里删
                         //还需要通知 recyclerview 删除对应元素
                         Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
                         intent.putExtra("flag", UNDO_SAVE);
@@ -200,8 +197,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         Bundle bundle = new Bundle();
                         bundle.putSerializable("undo_save_device", tmpDevice);
                         intent.putExtra("undo_save_device", bundle);
-
                         LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
+
                         ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
                     }
                 }
@@ -223,9 +220,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 if (flag == ON_RECEIVE_SCAN_RESULT) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
 
-                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeivceId)) {
-                        fragment.mDeviceId.setText(tmpDevice.mDeivceId);
-                        String macAddress = tmpDevice.mMacAddress; //66:JJ:KK:HD:FK:11
+                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeviceID)) {
+                        fragment.mDeviceId.setText(tmpDevice.mDeviceID);
+                        String macAddress = tmpDevice.mMacAddress; //16:11:32:17:12:18
                         String[] split = macAddress.split(":");
                         if (split.length == 6) {
                             fragment.mMacAddress_1.setText(split[0]);
@@ -253,7 +250,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-
         switch (v.getId()) {
             case R.id.bt_start_gps:
                 if (!isOPen(mActivity)) {
@@ -277,60 +273,64 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.bt_save_data:
+                String deviceId = mDeviceId.getText().toString();
+                String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
+                        mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
                 if (!isStopLocate) {
-                    // TODO: 2017/6/14 判断逻辑过重，考虑是否增加独立方法来判断
-                    //mLocationDevice是new出来的，自身一定不为null，但是其属性值全为null
-
-                    if (!TextUtils.isEmpty(mLocationDevice.mLatitude)) {
-
-                        String deviceId = mDeviceId.getText().toString();
-                        String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
-                                mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
-
-                        if (deviceId.equals("")) {
-                            ToastUtil.showShortToast(mActivity, "设备号码不能为空");
-                            return;
-                        }
-                        if (macAddress != null && macAddress.equals("")) {
-                            ToastUtil.showShortToast(mActivity, "MAC地址不能为空");
-                            return;
-                        }
-                        if (macAddress != null && macAddress.length() < 17) {
-                            ToastUtil.showShortToast(mActivity, "MAC地址信息不全");
-                            return;
-                        }
-                        mLocationDevice.mDeivceId = deviceId;
-                        mLocationDevice.mMacAddress = macAddress;
-                        //LogUtil.i("设备ID:" + mLocationDevice.mDeivceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
-                        //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
-
-                        if (mLocationDevice.mLocMode != BDLocation.TypeGpsLocation) {
-                            ToastUtil.showShortToast(mActivity, "请等待GPS定位数据");
-                            return;
-                        }
-                        LocationDevice deviceToDo = mDao.queryById(deviceId);
-                        if (deviceToDo != null) {
-                            ToastUtil.showShortToast(mActivity, "不能重复添加设备，请查看设备是否已保存");
-                            return;
-                        }
-                        mDao.add(mLocationDevice);
-                        this.undoSaveDevice = mLocationDevice;
-
-                        //通知recyclerview刷新
-                        Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
-                        intent.putExtra("flag", ON_SAVE_DATA);
-
-                        Bundle bundle = new Bundle();
-                        bundle.putSerializable("on_save_data", mLocationDevice);
-                        intent.putExtra("on_save_data", bundle);
-                        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
-
-                        ToastUtil.showShortToast(mActivity, "添加设备信息成功");
-                    } else {
+                    //mLocationDevice是new出来的，自身一定不为null，但是其属性值没初始化前全为null
+                    if (TextUtils.isEmpty(mLocationDevice.mLatitude)) {
                         ToastUtil.showShortToast(mActivity, "请先获取GPS地址");
+                        return;
                     }
 
+                    //判断定位模式
+                    if (mLocationDevice.mLocMode != BDLocation.TypeGpsLocation) {
+                        ToastUtil.showShortToast(mActivity, "请等待GPS定位数据");
+                        return;
+                    }
+
+                    //通过正则表达式判断 ID 和MAC地址
+                    if (!RegexValidator.isDeviceID(deviceId)) {
+                        ToastUtil.showShortToast(mActivity, "设备号码不正确");
+                        return;
+                    }
+                    if (!RegexValidator.isMacAddress(macAddress)) {
+                        ToastUtil.showShortToast(mActivity, "MAC地址不正确");
+                        return;
+                    }
+
+
+                    //ID不能重复添加
+                    LocationDevice deviceToDo1 = mDao.queryById(deviceId);
+                    if (deviceToDo1 != null ) {
+                        ToastUtil.showShortToast(mActivity, "不能重复添加相同ID的设备");
+                        return;
+                    }
+                    //MAC地址不能重复添加
+                    LocationDevice deviceToDo2 = mDao.queryByMac(macAddress);
+                    if(deviceToDo2 != null){
+                        ToastUtil.showShortToast(mActivity, "不能重复添加相同MAC地址的设备");
+                        return;
+                    }
+
+                    mLocationDevice.mDeviceID = deviceId;
+                    mLocationDevice.mMacAddress = macAddress;
+                    //LogUtil.i("设备ID:" + mLocationDevice.mDeiviceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
+                    //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
+
+                    mDao.add(mLocationDevice);
+                    //临时保存 撤销功能使用
+                    this.undoSaveDevice = mLocationDevice;
+
+                    //通知recyclerview刷新
+                    Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
+                    intent.putExtra("flag", ON_SAVE_DATA);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("on_save_data", mLocationDevice);
+                    intent.putExtra("on_save_data", bundle);
+                    LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);
+                    ToastUtil.showShortToast(mActivity, "添加设备信息成功");
                 } else {
                     ToastUtil.showShortToast(mActivity, "请重新获取定位信息");
                 }
@@ -343,44 +343,13 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     ToastUtil.showShortToast(mActivity, "当前还未保存，无法撤销");
                     return;
                 }
-                if (tmpDevice.mDeivceId.equals(undoSaveDevice.mDeivceId)) {
+                if (tmpDevice.mDeviceID.equals(undoSaveDevice.mDeviceID)) {
                     //LogUtil.i("等待撤销的对象 "+tmpDevice.toString());
                     UIUtil.showEditDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
                 } else {
                     ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
                 break;
-/*
-            case R.id.btn_createQRCode:
-                //生成二维码
-                String textContent = mContent.getText().toString();
-                if (TextUtils.isEmpty(textContent)) {
-                    Toast.makeText(mActivity, "您的输入为空!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                mContent.setText("");
-                //带LOGO
-                //Bitmap mBitmap = CodeUtils.createImage(textContent, 400, 400, BitmapFactory.decodeResource(getResources(), R.drawable.launcher));
-                //不带LOGO
-                Bitmap mBitmap = CodeUtils.createImage(textContent, 400, 400, null);
-                mImage.setVisibility(View.VISIBLE);
-                mImage.setImageBitmap(mBitmap);
-
-                break;*/
-            /*case R.id.btn_scan:
-                //扫码
-                Intent intent = new Intent(mActivity, CaptureActivity.class);
-                startActivityForResult(intent, REQUEST_CODE);
-                break;
-
-            case R.id.btn_scan_from_gallery:
-                Intent intentFromGallery = new Intent(Intent.ACTION_GET_CONTENT);
-                intentFromGallery.addCategory(Intent.CATEGORY_OPENABLE);
-                intentFromGallery.setType("image*//*");
-                startActivityForResult(intentFromGallery, REQUEST_IMAGE);
-                break;
-                */
-
             default:
                 break;
         }
@@ -412,12 +381,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     }
 
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mLocationClient.stop();
-    }
-
     public static boolean isOPen(final Context context) {
         LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -428,9 +391,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         }
         return false;
     }
+
     //初始化配置信息
-
-
     private void initLocation() {
         LocationClientOption option = new LocationClientOption();
         //可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
@@ -444,7 +406,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         option.setIsNeedAddress(false);
         mLocationClient.setLocOption(option);
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -490,30 +451,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    //解析二维码结果，拆分字符串，并发送给handler
-    private void sendHandlerMsg(String result) {
-        if (!TextUtils.isEmpty(result)) {
-            String[] split1 = result.split(":");
-            if (!split1[0].equals("LocationHelper")) {
-                ToastUtil.showShortToast(mActivity, "不支持该格式的二维码，请检查二维码是否正确");
-            } else {
-                String[] split2 = result.split("//"); //
-                String split3 = split2[1]; //00010#66:JJ:KK:HD:FK:11
-                String[] split4 = split3.split("#");
-                LocationDevice locationDevice = new LocationDevice();
-                locationDevice.mDeivceId = split4[0];
-                locationDevice.mMacAddress = split4[1];
-
-                Message tmpMsg = Message.obtain();
-                tmpMsg.what = ON_RECEIVE_SCAN_RESULT;
-                tmpMsg.obj = locationDevice;
-                mHandler.sendMessage(tmpMsg);
-            }
-        }
-    }
-
-    private Intent mIntent;
-    //从菜单设置的扫一扫
+    //从菜单设置的扫一扫，MainActivity得到菜单的扫一扫的数据
     public void setIntentData(Intent intent) {
         mIntent = intent;
         if (mIntent != null) {
@@ -533,6 +471,28 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    //解析二维码结果，拆分字符串，并发送给本fragment的handler
+    private void sendHandlerMsg(String result) {
+        if (!TextUtils.isEmpty(result)) {
+            String[] split1 = result.split(":");
+            if (!split1[0].equals("LocationHelper")) {
+                ToastUtil.showShortToast(mActivity, "不支持该格式的二维码，请检查二维码是否正确");
+            } else {
+                String[] split2 = result.split("//"); // LocationHelper://00033#16:11:32:17:12:18
+                String split3 = split2[1]; //00033#16:11:32:17:12:18
+                String[] split4 = split3.split("#");
+                LocationDevice locationDevice = new LocationDevice();
+                locationDevice.mDeviceID = split4[0];
+                locationDevice.mMacAddress = split4[1];
+
+                Message tmpMsg = Message.obtain();
+                tmpMsg.what = ON_RECEIVE_SCAN_RESULT;
+                tmpMsg.obj = locationDevice;
+                mHandler.sendMessage(tmpMsg);
             }
         }
     }

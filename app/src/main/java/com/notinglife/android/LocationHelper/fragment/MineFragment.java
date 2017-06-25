@@ -22,8 +22,10 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
+import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
+import com.notinglife.android.LocationHelper.utils.UIUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -73,6 +75,8 @@ public class MineFragment extends Fragment {
     private final static int ON_LOGIN = 10;
     private final static int ON_LOGOUT = 11;
 
+    private final static int ON_CONFIRM_LOGOUT = 6;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,9 +93,8 @@ public class MineFragment extends Fragment {
         ButterKnife.bind(this, view);
 
         if (AVUser.getCurrentUser() != null) {
-            LogUtil.i(TAG, AVUser.getCurrentUser().toString());
+            //LogUtil.i(TAG, AVUser.getCurrentUser().toString());
             String username = AVUser.getCurrentUser().getUsername();
-            String email = AVUser.getCurrentUser().getEmail();
             mTvLoginTitle.setText(username);
             mTvLoginHint.setText("欢迎使用本系统");
             mMineLogout.setVisibility(View.VISIBLE);
@@ -113,13 +116,16 @@ public class MineFragment extends Fragment {
         mMineLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AVUser.logOut();
-                //通过本地广播通知刷新UI
-                Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
-                logoutIntent.putExtra("flag", ON_LOGOUT);
-                LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
-
-               ToastUtil.showShortToast(mActivity,"已登出本系统");
+                UIUtil.showConfirmDialog(mActivity,mHandler,"注销登录","请确认是否退出登录？");
+                //下面2行代码放在handler中执行更新ui
+                //UIRefreshUtil.onLogout(mActivity.getApplicationContext());
+                //ToastUtil.showShortToast(mActivity, "已登出本系统");
+            }
+        });
+        mMineFullInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mActivity, UserDetailActivity.class));
             }
         });
 
@@ -130,15 +136,13 @@ public class MineFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        //动态注册本地广播，以便通知设备的添加和删除，可以及时更新recyclerview
+        //动态注册本地广播，以便通知设备的添加和删除，可以及时更新UI
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.ON_LOGOUT");
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(MineFragment.this);
-
-
     }
 
     @Override
@@ -167,6 +171,12 @@ public class MineFragment extends Fragment {
                     fragment.mTvLoginHint.setText("登陆后同步云端");
                     fragment.mMineLogout.setVisibility(View.GONE);
                 }
+
+                if(flag == ON_CONFIRM_LOGOUT){
+                    //对话框确认键被点击，触发注销操作和本地广播的发送，
+                    UIRefreshUtil.onLogout(fragment.mActivity.getApplicationContext());
+                    ToastUtil.showShortToast(fragment.mActivity, "已注销登录");
+                }
             }
         }
     }
@@ -184,7 +194,7 @@ public class MineFragment extends Fragment {
                 Message message = Message.obtain();
                 message.what = ON_LOGOUT;
                 //message.obj = tmpDevice;
-                LogUtil.i(TAG, " 消息标志位 " + message.what);
+                //LogUtil.i(TAG, " 消息标志位 " + message.what);
                 mHandler.sendMessage(message);
             }
 

@@ -48,7 +48,7 @@
                     android:id="@+id/tv_device_number"
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:hint="00001"
+                    android:hint="*****"
                     android:maxLength="5"
                     android:maxLines="1"
                     android:minHeight="0dp"
@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:hint="AA"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -97,7 +97,7 @@
                     android:id="@+id/editText2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="BB"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -106,7 +106,7 @@
                     android:id="@+id/editText3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="CC"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -115,7 +115,7 @@
                     android:id="@+id/editText4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="DD"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -124,7 +124,7 @@
                     android:id="@+id/editText5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="EE"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -133,7 +133,7 @@
                     android:id="@+id/editText6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="FF"
+                    android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textSize="18sp"/>
@@ -172,7 +172,7 @@
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:gravity="start"
-                    android:text="00.000000"
+                    android:text="**.******"
                     android:textSize="18sp"/>
 
 
@@ -188,7 +188,7 @@
                     android:id="@+id/tv_lng_info"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
-                    android:text="00.000000"
+                    android:text="**.******"
                     android:textSize="18sp"/>
 
             </LinearLayout>
@@ -242,7 +242,7 @@
                     android:id="@+id/tv_loc_radius_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="000.0米"
+                    android:text="***.*米"
                     android:textSize="18sp"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>

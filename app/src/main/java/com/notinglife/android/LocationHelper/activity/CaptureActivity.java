@@ -71,6 +71,7 @@ public class CaptureActivity extends AppCompatActivity {
             }
         });
 
+        //从图库选择图片
         mFromGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

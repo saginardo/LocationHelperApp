@@ -15,8 +15,8 @@ public class LocationDevice implements Serializable {
 
     private static final long serialVersionUID = -2304670905038616692L;
 
-    public Integer mId;
-    public String mDeivceId;
+    public Integer mID;
+    public String mDeviceID;
     public String mMacAddress;
     public String mLatitude;
     public String mLongitude;
@@ -26,7 +26,7 @@ public class LocationDevice implements Serializable {
     @Override
     public String toString() {
         return "LocationDevice{" +
-                "mDeivceId='" + mDeivceId + '\'' +
+                "mDeiviceId='" + mDeviceID + '\'' +
                 ", mMacAddress='" + mMacAddress + '\'' +
                 ", mLatitude='" + mLatitude + '\'' +
                 ", mLongitude='" + mLongitude + '\'' +
@@ -35,12 +35,11 @@ public class LocationDevice implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        //return super.equals(obj);
         if(this == obj) return true;
         if(obj==null) return false;
         if(getClass() != obj.getClass()) return false;
         LocationDevice other = (LocationDevice)obj;
-        return  Objects.equals(mDeivceId,other.mDeivceId)
+        return  Objects.equals(mDeviceID,other.mDeviceID)
                 && Objects.equals(mMacAddress,other.mMacAddress)
                 && Objects.equals(mLatitude,other.mLatitude)
                 && Objects.equals(mLongitude,other.mLongitude);
@@ -51,6 +50,6 @@ public class LocationDevice implements Serializable {
     @Override
     public int hashCode() {
         //return super.hashCode();
-        return Objects.hash(mDeivceId,mMacAddress,mLatitude,mLongitude);
+        return Objects.hash(mDeviceID,mMacAddress,mLatitude,mLongitude);
     }
 }

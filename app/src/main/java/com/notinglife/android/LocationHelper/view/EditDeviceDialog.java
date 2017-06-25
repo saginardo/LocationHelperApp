@@ -23,7 +23,7 @@ import butterknife.ButterKnife;
  *          date 2017-06-12 14:39
  */
 
-public class EditDialog extends Dialog {
+public class EditDeviceDialog extends Dialog {
 
     @BindView(R.id.tv_edit_device_title)
     TextView mDialogTitle;
@@ -36,8 +36,6 @@ public class EditDialog extends Dialog {
     RelativeLayout mRLDeviceLatLng;
     @BindView(R.id.rl_device_mac)
     RelativeLayout mRLDeviceMac;
-
-
 
     @BindView(R.id.tv_device_id)
     TextView mTVDeviceId;
@@ -69,6 +67,7 @@ public class EditDialog extends Dialog {
     private String message;
     private LocationDevice tmpDevice;
 
+
     //showdialog标志位
     private int mFlag;
     private final static int DELETE_BY_ID = 0;
@@ -78,7 +77,7 @@ public class EditDialog extends Dialog {
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
-    public EditDialog(Context context, String title, String msg) {
+    public EditDeviceDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);
         dialogTitle  = title;
         message = msg;
@@ -117,7 +116,7 @@ public class EditDialog extends Dialog {
     private void initView() {
 
         if(tmpDevice!=null){
-            mETDeviceId.setText(tmpDevice.mDeivceId);
+            mETDeviceId.setText(tmpDevice.mDeviceID);
             mETDeviceLat.setText(tmpDevice.mLatitude);
             mETDeviceLng.setText(tmpDevice.mLongitude);
             mETDeviceMac.setText(tmpDevice.mMacAddress);
@@ -163,13 +162,15 @@ public class EditDialog extends Dialog {
     }
 
     public LocationDevice getDeviceInfo() {
-
-        tmpDevice.mDeivceId = mETDeviceId.getText().toString();
+        tmpDevice.mDeviceID = mETDeviceId.getText().toString();
         tmpDevice.mLatitude = mETDeviceLat.getText().toString();
         tmpDevice.mLongitude = mETDeviceLng.getText().toString();
         tmpDevice.mMacAddress = mETDeviceMac.getText().toString();
         return tmpDevice;
     }
+
+
+
     /**
      * 设置确定按钮的显示内容和监听
      *
@@ -191,6 +192,7 @@ public class EditDialog extends Dialog {
     public void setFlag(int flag) {
         mFlag = flag;
     }
+
 
     /**
      * 设置确定按钮和取消被点击的接口

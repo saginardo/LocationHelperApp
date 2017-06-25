@@ -11,6 +11,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
@@ -18,7 +19,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ScrollView;
 
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
@@ -47,38 +47,14 @@ import butterknife.ButterKnife;
 public class DeviceListFragment extends Fragment implements View.OnClickListener {
 
     public static final String LOCATIONDEVICE = "LOCATIONDEVICE";
+    public static final String DEVICEPOSITION = "DEVICEPOSITION";
+    private static final String TAG = "DeviceListFragment";
 
 
     @BindView(R.id.id_recyclerview)
     EmptyRecyclerView mRecyclerView;
     @BindView(R.id.id_empty_view)
     View mEmptyView;
-    /*@BindView(R.id.bt_save_to_file)
-    Button mSaveToFile;
-    @BindView(R.id.bt_send_data)
-    Button mSendData;
-    @BindView(R.id.bt_delete_all)
-    Button mDeleteAll;
-    @BindView(R.id.bt_delete_by_id)
-    Button mDeleteById;
-    @BindView(R.id.bt_query_by_id)
-    Button mQueryById;
-    @BindView(R.id.bt_query_all)
-    Button mQueryAll;
-    @BindView(R.id.bt_update_by_id)
-    Button mUpdateById;
-
-    @BindView(R.id.et_delete_id)
-    EditText mDeleteId;
-    @BindView(R.id.et_query_id)
-    EditText mQueryId;
-    @BindView(R.id.et_update_id)
-    EditText mUpdateId;*/
-
-    @BindView(R.id.sv_devices)
-    ScrollView mScrollView;
-/*    @BindView(R.id.tv_no_data)
-    TextView mTextView;*/
 
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
@@ -87,8 +63,10 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int ON_SAVE_DATA = 3;  //接收到ContentFragment的消息的标志位
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
-
-    private static final String TAG = "DeviceListFragment";
+    private final static int ON_RECEIVE_SCAN_RESULT = 6;
+    private final static int ON_EDIT_DEVICE = 7;
+    @BindView(R.id.swipe_fresh)
+    SwipeRefreshLayout mSwipeFresh;
 
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
@@ -111,14 +89,6 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         View view = View.inflate(mActivity, R.layout.fragment_device_list, null);
         ButterKnife.bind(this, view);
 
-/*        mQueryById.setOnClickListener(this);
-        mQueryAll.setOnClickListener(this);
-        mDeleteById.setOnClickListener(this);
-        mDeleteAll.setOnClickListener(this);
-        mSaveToFile.setOnClickListener(this);
-        mSendData.setOnClickListener(this);
-        mUpdateById.setOnClickListener(this);*/
-
         mDao = new DeviceRawDao(mActivity);
         mList = mDao.queryAll();
 
@@ -137,7 +107,9 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 LocationDevice locationDevice = mList.get(position);
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(LOCATIONDEVICE, locationDevice);
+                intent.putExtra(DEVICEPOSITION, position);
                 intent.putExtra(LOCATIONDEVICE, bundle);
+                //传入mList中的position信息，便于回传修改
                 intent.setClass(mActivity, DeviceDetailActivity.class);
                 startActivity(intent);
             }
@@ -162,7 +134,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     int position = viewHolder.getAdapterPosition();
                     LocationDevice device = mList.remove(position);
-                    mDao.deleteById(device.mId);
+                    mDao.deleteById(device.mID);
                     mDeviceRecyclerAdapter.notifyItemRemoved(position);
                 }
 
@@ -179,8 +151,40 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
             };
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mCallback);
             itemTouchHelper.attachToRecyclerView(mRecyclerView);*/
-
+       
+        //下拉刷新逻辑
+        mSwipeFresh.setColorSchemeResources(R.color.colorPrimaryDark);
+        mSwipeFresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshData();
+            }
+        });
         return view;
+    }
+
+    //数据刷新逻辑
+    private void refreshData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    Thread.sleep(1000);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mList.clear();
+                        mList.addAll(mDao.queryAll());
+                        mDeviceRecyclerAdapter.notifyDataSetChanged();
+                        //操作完成，刷新结束
+                        mSwipeFresh.setRefreshing(false);
+                    }
+                });
+            }
+        }).start();
     }
 
     @Override
@@ -190,6 +194,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.DATA_CHANGED");
+        filter.addAction("com.notinglife.android.action.DATA_DELETE"); //DeviceDetailActivity 发送的修改设备信息的广播
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(DeviceListFragment.this);
@@ -200,6 +205,11 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     public void onDestroy() {
         super.onDestroy();
         broadcastManager.unregisterReceiver(mReceiver);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
     private static class MyHandler extends Handler {
@@ -230,7 +240,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
 
                 if (flag == UPDATE_DEVICE) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null && tmpDevice.mDeivceId != null && !tmpDevice.mDeivceId.equals("")) {
+                    if (tmpDevice != null && tmpDevice.mDeviceID != null && !tmpDevice.mDeviceID.equals("")) {
                         int update = fragment.mDao.update(tmpDevice);
                         if (update == 1) {
                             ToastUtil.showShortToast(fragment.getActivity(), "成功修改设备信息");
@@ -244,8 +254,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
                 if (flag == DELETE_BY_ID) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null && tmpDevice.mId != null && tmpDevice.mId > 0) {
-                        int delete = fragment.mDao.deleteById(tmpDevice.mId);
+                    if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
+                        int delete = fragment.mDao.deleteById(tmpDevice.mID);
 
                         if (delete == 1) {
                             ToastUtil.showShortToast(fragment.getActivity(), "成功删除设备信息");
@@ -267,14 +277,28 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
                 if (flag == UNDO_SAVE) {
                     // TODO: 2017/6/15 暂时没有mList的position信息
-
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    fragment.mDao.deleteById(tmpDevice.mId);
+                    fragment.mDao.deleteById(tmpDevice.mID);
 
                     List<LocationDevice> locationDevices = fragment.mDao.queryAll();
                     fragment.mList.clear();
                     fragment.mList.addAll(locationDevices);
                     fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
+                }
+                if (flag == ON_EDIT_DEVICE) {
+                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
+                    if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
+                        int update = fragment.mDao.update(tmpDevice);
+
+                        if (update == 1) {
+                            ToastUtil.showShortToast(fragment.getActivity(), "成功修改设备信息");
+                            fragment.mList.set(position, tmpDevice);
+                            fragment.mDeviceRecyclerAdapter.notifyItemChanged(position);
+                        } else {
+                            //这里应该判断不到，在修改之前已经查询输入的ID是否合法，考虑是否删除？
+                            ToastUtil.showShortToast(fragment.getActivity(), "修改失败，请检查ID是否输入错误");
+                        }
+                    }
                 }
 
             }
@@ -463,6 +487,19 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 message.obj = tmpDevice;
 
                 // LogUtil.i("消息标志位 "+ message.what +" , 消息对象 "+message.obj);
+                mHandler.sendMessage(message);
+            }
+            //设备详情 DeviceDetailActivity 发送的广播
+            if (flag == ON_EDIT_DEVICE) {
+                int intExtra = intent.getIntExtra(DEVICEPOSITION, -1);
+                Bundle on_save_data = intent.getBundleExtra("on_edit_device");
+                LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("on_edit_device");
+
+                Message message = Message.obtain();
+                message.what = ON_EDIT_DEVICE;
+                message.obj = tmpDevice;
+                message.arg1 = intExtra;
+                //LogUtil.i(TAG,"消息标志位 "+ message.what +" , 消息对象 "+message.obj+" , 消息位置"+intExtra);
                 mHandler.sendMessage(message);
             }
 

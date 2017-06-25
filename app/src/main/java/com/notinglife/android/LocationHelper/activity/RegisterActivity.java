@@ -18,17 +18,25 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.SignUpCallback;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
+import com.notinglife.android.LocationHelper.utils.ToastUtil;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.avos.avoscloud.AVException.USERNAME_TAKEN;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -48,6 +56,11 @@ public class RegisterActivity extends AppCompatActivity {
     ScrollView mRegisterForm;
     @BindView(R.id.emailaddress)
     EditText mEmailaddress;
+    @BindView(R.id.password2)
+    EditText mPassword2;
+    @BindView(R.id.emailaddress2)
+    EditText mEmailaddress2;
+
 
     private static final String TAG = "RegisterActivity";
 
@@ -87,9 +100,11 @@ public class RegisterActivity extends AppCompatActivity {
         mPassword.setError(null);
         mEmailaddress.setError(null);
 
-        String username = mUsername.getText().toString();
+        final String username = mUsername.getText().toString();
         String password = mPassword.getText().toString();
-        String emailAddress = mEmailaddress.getText().toString();
+        String password2 =  mPassword2.getText().toString();
+        final String emailAddress = mEmailaddress.getText().toString();
+        String emailAddress2 = mEmailaddress2.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -104,46 +119,105 @@ public class RegisterActivity extends AppCompatActivity {
             focusView = mPassword;
             cancel = true;
         }
+        if(!RegexValidator.isPassword(password2)){
+            mPassword2.setError(getString(R.string.prompt_password_hint));
+            focusView = mPassword;
+            cancel = true;
+        }
+        if(!password2.equals(password)){
+            mPassword2.setError(getString(R.string.password_repeat_fail));
+            focusView = mPassword2;
+            cancel = true;
+        }
+
         if (!RegexValidator.isEmail(emailAddress)) {
             mEmailaddress.setError(getString(R.string.error_emil_invalid));
             focusView = mEmailaddress;
             cancel = true;
         }
 
+        if(!RegexValidator.isEmail(emailAddress2)){
+            mEmailaddress2.setError(getString(R.string.prompt_password_hint));
+            focusView = mEmailaddress2;
+            cancel = true;
+        }
+        if(!emailAddress2.equals(emailAddress)){
+            mEmailaddress2.setError(getString(R.string.email_repeat_fail));
+            focusView = mEmailaddress2;
+            cancel = true;
+        }
+
+
+
         if (cancel) {
             focusView.requestFocus();
         } else {
             showProgress(true);
 
-            AVUser user = new AVUser();// 新建 AVUser 对象实例
+            final AVUser user = new AVUser();// 新建 AVUser 对象实例
             user.setUsername(username);// 设置用户名
             user.setPassword(password);// 设置密码
             user.setEmail(emailAddress);// 设置Email
 
+            //查询邮箱重复
+            AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
+            userEmailQuery.whereEqualTo("emailAddress",emailAddress);
 
-            user.signUpInBackground(new SignUpCallback() {
+            //查询用户对应邮箱是否存在  pointer查询；注册页面用户还没有objectID，应该不能用 pointer 查询
+            userEmailQuery.findInBackground(new FindCallback<AVObject>() {
                 @Override
-                public void done(AVException e) {
-                    if (e == null) {
-                        // 注册成功，把用户对象赋值给当前用户
-                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
-                        RegisterActivity.this.finish();
-                    } else {
-                        showProgress(false);
-                        switch (e.getCode()){
-                            case 216:
-                                break;
-                            default:
-                                break;
-                        }
+                public void done(List<AVObject> list, AVException e) {
+                    if(e==null){
+                        LogUtil.i(TAG,"查询结果 "+list.size()+"");
 
-                        Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        //如果没有查出保存过这个邮箱，那么就保存该用户 否则提示用户 邮箱已存在
+                        // FIXME: 2017/6/22 调用关系查询
+                        if(list.size()==0){
+                            user.signUpInBackground(new SignUpCallback() {
+                                @Override
+                                public void done(AVException e) {
+                                    if (e == null) {
+                                        // 建立_User表和 user_email表的一个 Pointer 映射关系
+                                        AVObject user_email = new AVObject("UserEmail");
+                                        user_email.put("emailAddress",emailAddress);
+                                        user_email.put("targetUserID", AVObject.createWithoutData("_User", user.getObjectId()));//Point指针类型
+                                        user_email.put("targetUserName", user.getUsername());
+                                        LogUtil.i(TAG,user_email.toString());
+                                        user_email.saveInBackground();
+
+                                        // 注册成功，把用户对象赋值给当前用户
+                                        ToastUtil.showShortToast(getApplicationContext(),"注册成功，请激活邮箱");
+                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                        RegisterActivity.this.finish();
+                                    } else {
+                                        showProgress(false);
+                                        ToastUtil.showShortToast(RegisterActivity.this,e.getMessage());
+                                        switch (e.getCode()) {
+                                            case USERNAME_TAKEN:
+                                                ToastUtil.showShortToast(RegisterActivity.this,"用户名已存在，请重新设置");
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                            });
+                        }else {
+                            showProgress(false);
+                            ToastUtil.showShortToast(getApplicationContext(),"该邮箱已注册，请检查邮箱是否输入错误");
+                        }
+                    }else {
+                        showProgress(false);
+                        LogUtil.i(TAG,e.getMessage());
                     }
+
                 }
             });
+
+
+
         }
     }
-
 
 
     private void showProgress(final boolean show) {
@@ -180,8 +254,10 @@ public class RegisterActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }

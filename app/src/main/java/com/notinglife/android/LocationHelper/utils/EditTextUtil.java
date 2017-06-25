@@ -19,23 +19,14 @@ public class EditTextUtil {
             return null;
         }
         StringBuffer sb = new StringBuffer();
-        if (!TextUtils.isEmpty(editTexts[0].getText())) {
-            sb.append(editTexts[0].getText().toString()).append(":");
+
+        for(int i =0; i<editTexts.length-1;i++){
+            if (!TextUtils.isEmpty(editTexts[i].getText())) {
+                sb.append(editTexts[i].getText().toString()).append(":");
+            }
         }
-        if (!TextUtils.isEmpty(editTexts[1].getText())) {
-            sb.append(editTexts[1].getText().toString()).append(":");
-        }
-        if (!TextUtils.isEmpty(editTexts[2].getText())) {
-            sb.append(editTexts[2].getText().toString()).append(":");
-        }
-        if (!TextUtils.isEmpty(editTexts[3].getText())) {
-            sb.append(editTexts[3].getText().toString()).append(":");
-        }
-        if (!TextUtils.isEmpty(editTexts[4].getText())) {
-            sb.append(editTexts[4].getText().toString()).append(":");
-        }
-        if (!TextUtils.isEmpty(editTexts[5].getText())) {
-            sb.append(editTexts[5].getText().toString());
+        if (!TextUtils.isEmpty(editTexts[editTexts.length-1].getText())) {
+            sb.append(editTexts[editTexts.length-1].getText().toString());
         }
         return sb.toString().toUpperCase();
     }
@@ -54,41 +45,27 @@ public class EditTextUtil {
             }
         };
 
-        editTexts[0].setKeyListener(digitsKeyListener);
-        editTexts[1].setKeyListener(digitsKeyListener);
-        editTexts[2].setKeyListener(digitsKeyListener);
-        editTexts[3].setKeyListener(digitsKeyListener);
-        editTexts[4].setKeyListener(digitsKeyListener);
-        editTexts[5].setKeyListener(digitsKeyListener);
-        editTexts[6].setKeyListener(digitsKeyListener);
-
-        editTexts[0].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[0].setNextFocusForwardId(editTexts[1].getId());
-
-        editTexts[1].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[1].setNextFocusForwardId(editTexts[2].getId());
-
-        editTexts[2].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[2].setNextFocusForwardId(editTexts[3].getId());
-
-        editTexts[3].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[3].setNextFocusForwardId(editTexts[4].getId());
-
-        editTexts[4].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[4].setNextFocusForwardId(editTexts[5].getId());
-
-        editTexts[5].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-        editTexts[5].setNextFocusForwardId(editTexts[6].getId());
-
-        editTexts[1].setTransformationMethod(new AllCapTransformationUtil(true));
-        editTexts[2].setTransformationMethod(new AllCapTransformationUtil(true));
-        editTexts[3].setTransformationMethod(new AllCapTransformationUtil(true));
-        editTexts[4].setTransformationMethod(new AllCapTransformationUtil(true));
-        editTexts[5].setTransformationMethod(new AllCapTransformationUtil(true));
-        editTexts[6].setTransformationMethod(new AllCapTransformationUtil(true));
+        //设置设备id和，mac地址仅能输入数字和字母
+        //设置大写转小写字母
+        for (EditText editText : editTexts) {
+            editText.setKeyListener(digitsKeyListener);
+            editText.setTransformationMethod(new AllCapTransformationUtil(true));
+        }
+        //设置 edittext的下一个输入框和ime键盘的确定键改写
+        for (int i=0;i<editTexts.length-1;i++){
+            editTexts[i].setImeOptions(EditorInfo.IME_ACTION_NEXT);
+            editTexts[i].setNextFocusForwardId(editTexts[1].getId());
+        }
     }
 
     public static String getStringData() {
         return "qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM1234567890";
+    }
+
+
+    public static void ISTOEDIT(Boolean isEditable,EditText... editTexts){
+        for (EditText editText : editTexts) {
+            editText.setEnabled(isEditable);
+        }
     }
 }

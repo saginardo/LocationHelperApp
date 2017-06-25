@@ -28,7 +28,7 @@ public class FileUtil {
     public static boolean saveToFile(Context context, LocationDevice locationDevice) {
 
         StringBuffer sb = new StringBuffer();
-        sb.append(locationDevice.mDeivceId).append("#")
+        sb.append(locationDevice.mDeviceID).append("#")
                 .append(locationDevice.mMacAddress.toUpperCase()).append("#")
                 .append(locationDevice.mLatitude.toUpperCase()).append("#")
                 .append(locationDevice.mLongitude.toUpperCase()).append("\n");
@@ -67,7 +67,7 @@ public class FileUtil {
         for (LocationDevice ld : list) {
 
             StringBuffer sb = new StringBuffer();
-            sb.append(ld.mDeivceId).append("#")
+            sb.append(ld.mDeviceID).append("#")
                     .append(ld.mMacAddress.toUpperCase()).append("#")
                     .append(ld.mLatitude.toUpperCase()).append("#")
                     .append(ld.mLongitude.toUpperCase()).append("\n");
@@ -100,7 +100,7 @@ public class FileUtil {
                 while ((line = br.readLine()) != null) {
                     String[] words = line.split("#");
                     locationDevice = new LocationDevice();
-                    locationDevice.mDeivceId = words[0];
+                    locationDevice.mDeviceID = words[0];
                     locationDevice.mMacAddress = words[1];
                     locationDevice.mLatitude = words[2];
                     locationDevice.mLongitude = words[3];

@@ -2,10 +2,15 @@ package com.notinglife.android.LocationHelper.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -44,6 +49,7 @@ import com.notinglife.android.LocationHelper.view.SearchDialog;
 import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,6 +88,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private Activity mActivity;
     private MenuItem mLogoutMenuItem;
+    private MyHandler mHandler;
+    private MyReceiver mReceiver;
+    private LocalBroadcastManager broadcastManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,12 +98,10 @@ public class MainActivity extends AppCompatActivity {
         //mLocationClient = new LocationClient(getApplicationContext());
         //mLocationClient.registerLocationListener(new MyLocationListener());
         SDKInitializer.initialize(getApplicationContext());
+        ZXingLibrary.initDisplayOpinion(this);
         setContentView(R.layout.activity_main);
 
         mActivity = this;
-
-        ZXingLibrary.initDisplayOpinion(this);
-
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         initPermission();
@@ -118,10 +125,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void initView() {
         allFragment = new ArrayList<>();
+
+        //动态注册本地广播，以便通知设备的添加和删除，可以及时更新UI
+        broadcastManager = LocalBroadcastManager.getInstance(mActivity);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.notinglife.android.action.ON_LOGOUT");
+        mReceiver = new MyReceiver();
+        broadcastManager.registerReceiver(mReceiver, filter);
+        //添加handler用于更新UI
+        mHandler = new MyHandler(this);
 
         contentFragment = new AcqDataFragment();
         listDeviceFragment = new DeviceListFragment();
@@ -186,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar, menu);
+        getMenuInflater().inflate(R.menu.main_activity_toolbar, menu);
         if (AVUser.getCurrentUser() != null){
             mLogoutMenuItem = menu.findItem(R.id.logout);
             mLogoutMenuItem.setVisible(true);
@@ -234,11 +251,7 @@ public class MainActivity extends AppCompatActivity {
                 mLogoutMenuItem.setVisible(false);
                 //通知recyclerview刷新
                 Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
-
                 logoutIntent.putExtra("flag", ON_LOGOUT);
-                //Bundle bundle = new Bundle();
-                //bundle.putSerializable("on_save_data", mLocationDevice);
-                //logoutIntent.putExtra("on_save_data", bundle);
                 LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
 
                 ToastUtil.showShortToast(getApplicationContext(),"已登出本系统");
@@ -336,7 +349,6 @@ public class MainActivity extends AppCompatActivity {
             if (requestCode == REQUEST_CODE || requestCode == REQUEST_IMAGE || resultCode== RESULT_FROM_GALLERY) {
                 item.onActivityResult(requestCode, resultCode, data);
                 //LogUtil.i(resultCode+"-----");
-
             }
             LogUtil.i(TAG," resultCode "+ resultCode);
             if(resultCode == RESULT_FROM_TOOLBAR){
@@ -345,6 +357,47 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    //用于更新mainActivity的UI
+    private static class MyHandler extends Handler {
+
+        WeakReference<MainActivity> mMainActivity;
+        MyHandler(MainActivity mainActivity) {
+            mMainActivity = new WeakReference<>(mainActivity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            MainActivity mainActivity = mMainActivity.get();
+            if (mainActivity != null) {// 先判断弱引用是否为空，为空则不更新UI
+                int flag = msg.what;
+                //接收注销本地广播，更新UI等逻辑
+                if (flag == ON_LOGOUT) {
+                    //注销后MainActivity的UI更新
+                    mainActivity.mLogoutMenuItem.setVisible(false);
+                }
+            }
+        }
+    }
+
+
+    //用于更新UI事件的广播
+    private class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //接收到本地广播后先判断标志位
+            int flag = intent.getIntExtra("flag", -1);
+
+            if (flag == ON_LOGOUT) {
+                Message message = Message.obtain();
+                message.what = ON_LOGOUT;
+                mHandler.sendMessage(message);
+            }
+
+
+        }
     }
 
 

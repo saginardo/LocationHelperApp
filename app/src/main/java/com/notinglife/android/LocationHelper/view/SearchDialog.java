@@ -153,7 +153,7 @@ public class SearchDialog extends Dialog {
                     mLocationDevice = mDao.queryById(query);
                     if(mLocationDevice !=null){
                         mEmptyView.setVisibility(View.GONE);
-                        String result = mLocationDevice.mDeivceId;
+                        String result = mLocationDevice.mDeviceID;
                         //LogUtil.i("查询结果"+ result);
                         mDeviceIds.clear();
                         mDeviceIds.add("设备号："+ result);

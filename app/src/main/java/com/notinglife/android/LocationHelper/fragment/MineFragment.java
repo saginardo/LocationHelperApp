@@ -24,11 +24,12 @@ import android.widget.TextView;
 import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
+import com.notinglife.android.LocationHelper.activity.ManageDataActivity;
 import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
-import com.notinglife.android.LocationHelper.utils.UIUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -57,8 +58,8 @@ public class MineFragment extends Fragment {
     Button mMineDeviceToRepair;
     @BindView(R.id.mine_full_info)
     Button mMineFullInfo;
-    @BindView(R.id.mine_setting)
-    Button mMineSetting;
+    @BindView(R.id.mine_manage_data)
+    Button mMineManageData;
     @BindView(R.id.mine_about)
     Button mMineAbout;
     @BindView(R.id.rl_user_info)
@@ -71,24 +72,22 @@ public class MineFragment extends Fragment {
 
     private Activity mActivity;
     private MyHandler mHandler;
-    private LocalBroadcastManager broadcastManager;
-    private MyReceiver mReceiver;
 
     private static final String TAG = "MineFragment";
 
     //登录登出标志位
-    private final static int ON_LOGIN = 10;
-    private final static int ON_LOGOUT = 11;
+    private final static int ON_LOGIN = 20;
+    private final static int ON_CONFIRM_LOGOUT = 21;
+    private final static int ON_LOGOUT = 22;
+    private LocalBroadcastManager mBroadcastManager;
+    private MyReceiver mReceiver;
 
-    private final static int ON_CONFIRM_LOGOUT = 6;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mActivity = getActivity();
         mHandler = new MyHandler(MineFragment.this);
-
-
     }
 
     @Nullable
@@ -121,19 +120,25 @@ public class MineFragment extends Fragment {
         mMineLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                UIUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
+                DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
                 //下面2行代码放在handler中执行更新ui
                 //UIRefreshUtil.onLogout(mActivity.getApplicationContext());
                 //ToastUtil.showShortToast(mActivity, "已登出本系统");
             }
         });
+
         mMineFullInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(mActivity, UserDetailActivity.class));
             }
         });
-
+        mMineManageData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mActivity, ManageDataActivity.class));
+            }
+        });
         return view;
     }
 
@@ -142,26 +147,37 @@ public class MineFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         //动态注册本地广播，以便通知设备的添加和删除，可以及时更新UI
-        broadcastManager = LocalBroadcastManager.getInstance(mActivity);
+        mBroadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.ON_LOGOUT");
         mReceiver = new MyReceiver();
-        broadcastManager.registerReceiver(mReceiver, filter);
+        mBroadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(MineFragment.this);
 
-/*        //在onActivityCreated后才能设置actionbar
-        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
-        ((AppCompatActivity) mActivity).setSupportActionBar(mMineToolBar);
-        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
-        supportActionBar.setTitle("用户中心");*/
         mMineToolBar.setTitle("用户中心");
         mMineToolBar.inflateMenu(R.menu.mine_toolbar);
         mMineToolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
+                    case R.id.menu_login:
+/*                        AVUser.logOut();
+                        mMineToolBar.getMenu().getItem(0).setVisible(false);
+                        //通知登录后的刷新
+                        Intent loginIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
+                        loginIntent.putExtra("flag", ON_LOGIN);
+                        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(loginIntent);
+                        ToastUtil.showShortToast(mActivity,"欢迎登录本系统");*/
+                        break;
+
                     case R.id.menu_logout:
-                        LogUtil.i(TAG,"退出登录按钮点击了");
+                        AVUser.logOut();
+                        mMineToolBar.getMenu().getItem(1).setVisible(false);
+                        //通知注销后的界面刷新刷新
+                        Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
+                        logoutIntent.putExtra("flag", ON_LOGOUT);
+                        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
+                        ToastUtil.showShortToast(mActivity,"已登出本系统");
                         break;
 
                     case R.id.settings:
@@ -174,8 +190,9 @@ public class MineFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onDestroy() {
+        super.onDestroy();
+        mBroadcastManager.unregisterReceiver(mReceiver);
     }
 
     private static class MyHandler extends Handler {
@@ -198,6 +215,8 @@ public class MineFragment extends Fragment {
                     fragment.mTvLoginTitle.setText("请登录系统");
                     fragment.mTvLoginHint.setText("登陆后同步云端");
                     fragment.mMineLogout.setVisibility(View.GONE);
+                    fragment.getActivity().startActivity(new Intent(fragment.getActivity(),LoginActivity.class));
+                    fragment.getActivity().finish();
                 }
 
                 if (flag == ON_CONFIRM_LOGOUT) {
@@ -225,8 +244,7 @@ public class MineFragment extends Fragment {
                 //LogUtil.i(TAG, " 消息标志位 " + message.what);
                 mHandler.sendMessage(message);
             }
-
-
         }
     }
+
 }

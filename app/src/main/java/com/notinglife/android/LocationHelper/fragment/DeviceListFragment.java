@@ -21,15 +21,15 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.DeviceDetailActivity;
 import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
-import com.notinglife.android.LocationHelper.utils.UIUtil;
 import com.notinglife.android.LocationHelper.view.EmptyRecyclerView;
 
 import java.lang.ref.WeakReference;
@@ -68,15 +68,18 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
     private final static int ON_RECEIVE_SCAN_RESULT = 6;
     private final static int ON_EDIT_DEVICE = 7;
+
+
     @BindView(R.id.swipe_fresh)
     SwipeRefreshLayout mSwipeFresh;
     @BindView(R.id.device_list_toolBar)
     Toolbar mDeviceListToolBar;
+    @BindView(R.id.progress_bar)
+    ProgressBar mProgressBar;
 
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
     private DeviceRawDao mDao;
-    private LinearLayoutManager mLayoutManager;
     private MyHandler mHandler;
     public Activity mActivity;
     private LocalBroadcastManager broadcastManager;
@@ -97,8 +100,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         mDao = new DeviceRawDao(mActivity);
         mList = mDao.queryAll();
 
-        mLayoutManager = new LinearLayoutManager(mActivity);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(mActivity);
+        mRecyclerView.setLayoutManager(layoutManager);
 
         mDeviceRecyclerAdapter = new DeviceRecyclerAdapter(mActivity, mList);
         mRecyclerView.setAdapter(mDeviceRecyclerAdapter);
@@ -121,8 +124,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
 
             @Override
             public void onItemLongClick(View view, int position) {
-                //showEditDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
-                UIUtil.showEditDialog(view, mActivity, mHandler, "删除设备信息", null, mList.get(position), position, DELETE_BY_ID);
+                //showDeviceDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
+                DialogUtil.showDeviceDialog(view, mActivity, mHandler, "删除设备信息", null, mList.get(position), position, DELETE_BY_ID);
 
             }
         }));
@@ -198,38 +201,30 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         //动态注册本地广播，以便通知设备的添加和删除，可以及时更新recyclerview
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.notinglife.android.action.DATA_CHANGED");
-        filter.addAction("com.notinglife.android.action.DATA_DELETE"); //DeviceDetailActivity 发送的修改设备信息的广播
+        filter.addAction("com.notinglife.android.action.DATA_CHANGED"); //DeviceDetailActivity 发送的修改设备信息的广播
+        filter.addAction("com.notinglife.android.action.UNDO_SAVE"); //AcqDataFragment 发送的撤销更改的广播
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
         mHandler = new MyHandler(DeviceListFragment.this);
 
-/*        //在onActivityCreated后才能设置actionbar
-        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
-        ((AppCompatActivity) mActivity).setSupportActionBar(mDeviceListToolBar);
-        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
-        supportActionBar.setTitle("设备列表");*/
         mDeviceListToolBar.setTitle("设备列表");
         mDeviceListToolBar.inflateMenu(R.menu.device_list_toolbar);
         mDeviceListToolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
+                switch (item.getItemId()) {
                     case R.id.menu_search_button:
-                        LogUtil.i(TAG,"搜索按钮点击了");
-                        break;
+                        DialogUtil.showSearchDialog(mActivity);
+                        return true;
                     case R.id.menu_edit_mode:
-                        LogUtil.i(TAG,"编辑按钮点击了");
-                        break;
-                    case R.id.settings:
-                        LogUtil.i(TAG,"设置按钮点击了");
-                        break;
+
+                        return true;
+                    default:
+                        return false;
                 }
-                return false;
             }
         });
     }
-
 
 
     @Override
@@ -316,6 +311,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     fragment.mList.addAll(locationDevices);
                     fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
+
+                // TODO: 2017/6/26 待删除的功能
                 if (flag == ON_EDIT_DEVICE) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
@@ -389,8 +386,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
                 position = mList.indexOf(deviceToDo);
                 //// FIXED: 2017/6/13 rework
-                //showEditDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
-                UIUtil.showEditDialog(v, mActivity, mHandler, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                //showDeviceDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
                 break;
 
             case R.id.bt_delete_all:
@@ -399,8 +396,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     return;
                 }
                 // FIXED: 2017/6/13 rework
-                //showEditDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
-                UIUtil.showEditDialog(v, mActivity, mHandler, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+                //showDeviceDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
 
                 break;
 
@@ -438,8 +435,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 // FIXED: 2017/6/13 如何获得对象的位置
                 // 通过重写 对象的 hashCode和equals方法，判断查询出来的对象是同一个对象，从而获取在mList中的位置
                 position = mList.indexOf(deviceToDo);
-                //showEditDialog(v, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);
-                UIUtil.showEditDialog(v, mActivity, mHandler, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);*/
+                //showDeviceDialog(v, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);
+                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);*/
             default:
                 break;
         }

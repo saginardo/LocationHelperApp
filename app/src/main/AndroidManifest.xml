@@ -45,15 +45,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.RegisterActivity">
-
         </activity>
-
         <activity android:name=".activity.MainActivity">
         </activity>
-
         <activity android:name=".activity.DeviceDetailActivity">
         </activity>
-
         <activity android:name=".activity.CaptureActivity">
         </activity>
 
@@ -65,6 +61,8 @@
         </service>
 
         <activity android:name=".activity.UserDetailActivity">
+        </activity>
+        <activity android:name=".activity.ManageDataActivity">
         </activity>
     </application>
 

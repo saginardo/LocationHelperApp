@@ -74,6 +74,9 @@ public class EditUserDialog extends Dialog {
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
 
+    private final static int ON_EDIT_USER_EMAIL = 30;
+    private final static int ON_CHANGE_USER_PASSWORD = 31;
+
     private static final String TAG = "EditUserDialog";
 
     public EditUserDialog(Context context, String title, String msg) {
@@ -107,14 +110,32 @@ public class EditUserDialog extends Dialog {
     }
 
     private void initView() {
-        mTvEditUserTitle.setText(dialogTitle);
 
-        mTvUserNameInfo.setEnabled(false);//不让修改用户名
-        if(mUser!=null){ //初始回显页面
-            mTvUserNameInfo.setText(mUser.mUsername);
-            mTvUserEmailInfo.setHint(mUser.mEmail);
-            mTvUserEmailInfoRepeat.setHint(mUser.mEmail);
+        if(mFlag==ON_EDIT_USER_EMAIL){
+            mTvEditUserTitle.setText(dialogTitle);
+
+            mTvUserNameInfo.setEnabled(false);//不让修改用户名
+            if(mUser!=null){ //初始回显页面
+                mTvUserNameInfo.setText(mUser.mUsername);
+                mTvUserEmailInfo.setHint(mUser.mEmail);
+                mTvUserEmailInfoRepeat.setHint(mUser.mEmail);
+            }
         }
+        if(mFlag==ON_CHANGE_USER_PASSWORD){
+            mTvEditUserTitle.setText(dialogTitle);
+            mTvMessage.setVisibility(View.VISIBLE);
+            mTvMessage.setText(message);
+
+            mTvUsername.setVisibility(View.GONE);
+            mTvUserEmail.setVisibility(View.GONE);
+            mTvUserEmailRepeat.setVisibility(View.GONE);
+
+            mTvUserNameInfo.setVisibility(View.GONE);
+            mTvUserEmailInfo.setVisibility(View.GONE);
+            mTvUserEmailInfoRepeat.setVisibility(View.GONE);
+
+        }
+
     }
 
     /**

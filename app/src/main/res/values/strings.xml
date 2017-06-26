@@ -10,7 +10,7 @@
     <string name="acq_data">定位</string>
 
 
-    <!--我的界面 颜色-->
+    <!--我的界面-->
     <string name="mine_login_title">请登录系统</string>
     <string name="mine_login_hint">登陆后同步云端</string>
     <string name="mine_device_repair">待维护设备列表</string>
@@ -18,7 +18,7 @@
     <string name="mine_setting">设置</string>
     <string name="mine_about">关于</string>
     <string name="username">用户名</string>
-    <string name="username_hint">用户名字母开头的6到18位字符，不含特殊字符</string>
+    <string name="username_hint">用户名字母开头的5到18位字符，不含特殊字符</string>
     <string name="prompt_password">密码</string>
     <string name="prompt_password_hint">密码是6到16位字符，不含特殊字符</string>
     <string name="action_sign_in_short">登录</string>
@@ -39,5 +39,6 @@
     <string name="email_repeat_fail">邮箱输入不一致</string>
     <string name="prompt_password_repeat">请再输入一次密码</string>
     <string name="emailaddress_repeat">请再输入一次邮箱</string>
+    <string name="mine_manage_data">设备数据管理</string>
 
 </resources>

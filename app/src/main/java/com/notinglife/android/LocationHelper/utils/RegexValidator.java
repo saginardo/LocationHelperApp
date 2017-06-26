@@ -19,10 +19,10 @@ public class RegexValidator {
     public static final String REGEX_DEVICE_ID ="[0-9a-zA-Z]{5}";
 
     /**
-     * 正则表达式:验证用户名(不包含中文和特殊字符) 6到18位
+     * 正则表达式:验证用户名(不包含中文和特殊字符) 5到18位
      * 如果用户名使用手机号码或邮箱 则结合手机号验证和邮箱验证
      */
-    public static final String REGEX_USERNAME = "^[a-zA-Z]\\w{5,17}$";
+    public static final String REGEX_USERNAME = "^[a-zA-Z]\\w{4,17}$";
 
     /**
      * 正则表达式:验证密码(不包含特殊字符) 6到16位

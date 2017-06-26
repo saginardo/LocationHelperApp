@@ -14,19 +14,23 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVObject;
+import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.RequestEmailVerifyCallback;
 import com.avos.avoscloud.RequestPasswordResetCallback;
 import com.avos.avoscloud.SaveCallback;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.User;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
-import com.notinglife.android.LocationHelper.utils.UIUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,11 +59,12 @@ public class UserDetailActivity extends AppCompatActivity {
     Button mMineAbout;
 
     private static final String TAG = "UserDetailActivity";
+    private final static int ON_EDIT_USER_EMAIL = 30;
+    private final static int ON_CHANGE_USER_PASSWORD = 31;
+
     private Activity mActivity;
     private MyHandler mHandler;
 
-
-    private final static int ON_EDIT_USER_EMAIL = 7;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +81,17 @@ public class UserDetailActivity extends AppCompatActivity {
         if (AVUser.getCurrentUser() != null) {
 
             final AVUser currentUser = AVUser.getCurrentUser();
+            final String mObjectID = currentUser.getObjectId();
             final String username = currentUser.getUsername();
             final String email = currentUser.getEmail();
             Date createdAt = currentUser.getCreatedAt();
             //查出来的云对象保存为本地对象
             final User user = new User();
-            user.mUsername =username;
+            user.mObjectId = mObjectID;
+            user.mUsername = username;
             user.mEmail = email;
 
-            LogUtil.i(TAG,createdAt.toString());
+            LogUtil.i(TAG, createdAt.toString());
 
             mTvUsername.setText(username);
             mTvEmailAddress.setText(email);
@@ -94,19 +101,8 @@ public class UserDetailActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // TODOED: 2017/6/21 修改用户密码的逻辑
                     // FIXME: 2017/6/21 增加确认对话框
-                    LogUtil.i(TAG,"修改密码被点击了");
-                    AVUser.requestPasswordResetInBackground(email, new RequestPasswordResetCallback() {
-                        @Override
-                        public void done(AVException e) {
-                            if (e == null) {
-                                ToastUtil.showShortToast(getApplicationContext(), "密码重置链接已发送到注册邮箱");
-                                UIRefreshUtil.onLogout(getApplicationContext());
-                                finish();
-                            } else {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+                    DialogUtil.showUserEditDialog(mActivity, mHandler, "修改用户密码", "请确定是否重置密码，重置链接将发送到注册邮箱", user, ON_CHANGE_USER_PASSWORD);
+
                 }
             });
 
@@ -115,8 +111,7 @@ public class UserDetailActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     // TODO: 2017/6/20 修改用户注册邮箱
-                    LogUtil.i(TAG, "修改邮箱被点击了");
-                    UIUtil.showEmailEditDialog(mActivity, mHandler, "修改用户邮箱", "请确定修改如下用户邮箱", user);
+                    DialogUtil.showUserEditDialog(mActivity, mHandler, "修改用户邮箱", "请确定修改如下用户邮箱", user, ON_EDIT_USER_EMAIL);
                 }
             });
         }
@@ -143,7 +138,7 @@ public class UserDetailActivity extends AppCompatActivity {
                 if (flag == ON_EDIT_USER_EMAIL) {//接收修改邮箱的本地广播
                     User user = (User) msg.obj;
                     final String email = user.mEmail;
-
+                    final String mObjectId = user.mObjectId;
                     AVUser.getCurrentUser().saveInBackground(new SaveCallback() {
                         @Override
                         public void done(AVException e) {
@@ -151,19 +146,57 @@ public class UserDetailActivity extends AppCompatActivity {
                             AVUser.getCurrentUser().saveInBackground(new SaveCallback() {
                                 @Override
                                 public void done(AVException e) {
-                                    if(e==null){
-                                        ToastUtil.showShortToast(activity,"设置成功,请查收邮以重新激活");
+                                    if (e == null) {
+                                        ToastUtil.showLongToast(activity, "请查收邮件激活后，重新登录");
                                         AVUser.requestEmailVerifyInBackground(email, new RequestEmailVerifyCallback() {
                                             @Override
                                             public void done(AVException e) {
                                                 //do nothing
                                             }
                                         });
+                                        // Pointer 查询, 更新对应用户指向的Pointer的邮箱
+                                        AVQuery<AVObject> pointerQuery = new AVQuery<>("UserEmail");
+                                        pointerQuery.whereEqualTo("targetUserID", AVObject.createWithoutData("targetUserID", mObjectId));
+                                        pointerQuery.findInBackground(new FindCallback<AVObject>() {
+                                            @Override
+                                            public void done(List<AVObject> list, AVException e) {
+                                                if (list != null && list.size() > 0) {
+                                                    AVObject avObject = list.get(0);
+                                                    avObject.put("emailAddress", email);
+                                                    avObject.saveInBackground(new SaveCallback() {
+                                                        @Override
+                                                        public void done(AVException e) {
+                                                            if (e == null) {
+                                                                //UserEmail表保存成功，
+                                                                UIRefreshUtil.onLogout(activity);
+                                                                activity.finish();
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        });
+
                                     }
                                 }
                             });
-
-
+                        }
+                    });
+                }
+                if (flag == ON_CHANGE_USER_PASSWORD) {
+                    User user = (User) msg.obj;
+                    final String email = user.mEmail;
+                    LogUtil.i(TAG, "用户当前邮箱为：" + email);
+                    AVUser.requestPasswordResetInBackground(email, new RequestPasswordResetCallback() {
+                        @Override
+                        public void done(AVException e) {
+                            if (e == null) {
+                                ToastUtil.showShortToast(activity, "密码重置链接已发送到注册邮箱");
+                                UIRefreshUtil.onLogout(activity);
+                                activity.finish();
+                            } else {
+                                e.printStackTrace();
+                            }
                         }
                     });
                 }

@@ -2,10 +2,8 @@ package com.notinglife.android.LocationHelper.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +18,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVAnalytics;
@@ -32,6 +29,7 @@ import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
 import com.avos.avoscloud.RequestEmailVerifyCallback;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 
@@ -70,8 +68,7 @@ public class LoginActivity extends AppCompatActivity {
     Button mLoginButton;
     @BindView(R.id.username_register_button)
     Button mRegisterButton;
-    @BindView(R.id.sc_login_form)
-    ScrollView mScLoginForm;
+
     @BindView(R.id.email_resend_button)
     Button mEmailResendButton;
     private Context mContext;
@@ -165,15 +162,15 @@ public class LoginActivity extends AppCompatActivity {
                                         // FIXED: 2017/6/23
                                         final String[] userEmail = new String[1];
                                         AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
-                                        userEmailQuery.whereEqualTo("targetUserName",username);
+                                        userEmailQuery.whereEqualTo("targetUserName", username);
                                         userEmailQuery.findInBackground(new FindCallback<AVObject>() {
                                             @Override
                                             public void done(List<AVObject> list, AVException e) {
-                                                if(list!=null && list.size()>0){
+                                                if (list != null && list.size() > 0) {
                                                     AVObject avObject = list.get(0);
                                                     userEmail[0] = avObject.getString("emailAddress");
-
-                                                    if(!TextUtils.isEmpty(userEmail[0])) {
+                                                    LogUtil.i(TAG, userEmail[0]);
+                                                    if (!TextUtils.isEmpty(userEmail[0])) {
                                                         AVUser.requestEmailVerifyInBackground(userEmail[0], new RequestEmailVerifyCallback() {
                                                             @Override
                                                             public void done(AVException e) {
@@ -184,8 +181,8 @@ public class LoginActivity extends AppCompatActivity {
                                                             }
                                                         });
                                                     }
-                                                }else {
-                                                    ToastUtil.showShortToast(getApplicationContext(),"没有查询到该用户，请检查用户名是否输入错误");
+                                                } else {
+                                                    ToastUtil.showShortToast(getApplicationContext(), "没有查询到该用户，请检查用户名是否输入错误");
                                                 }
                                             }
                                         });
@@ -194,58 +191,34 @@ public class LoginActivity extends AppCompatActivity {
 
                                 break;
                             case EMAIL_NOT_FOUND:
-                                ToastUtil.showShortToast(mContext,"该用户还未设置邮箱");
+                                ToastUtil.showShortToast(mContext, "该用户还未设置邮箱");
                                 break;
                             case USER_DOESNOT_EXIST:
-                                ToastUtil.showShortToast(mContext,"该用户名尚未注册，请检查是否填写错误");
+                                ToastUtil.showShortToast(mContext, "该用户名尚未注册，请检查是否填写错误");
                             case USERNAME_PASSWORD_MISMATCH:
-                                ToastUtil.showShortToast(mContext,"用户名或密码错误");
+                                ToastUtil.showShortToast(mContext, "用户名或密码错误");
                             default:
                                 break;
                         }
-
                         Log.e("LOGIN", e.getMessage());
-                        //Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         }
     }
 
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean isShow) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mScLoginForm.setVisibility(isShow ? View.GONE : View.VISIBLE);
-            mScLoginForm.animate().setDuration(shortAnimTime).alpha(
-                    isShow ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mScLoginForm.setVisibility(isShow ? View.GONE : View.VISIBLE);
-                }
-            });
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        mLoginProgress.setVisibility(isShow ? View.VISIBLE : View.GONE);
+        mLoginProgress.animate().setDuration(shortAnimTime).alpha(
+                isShow ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginProgress.setVisibility(isShow ? View.VISIBLE : View.GONE);
+            }
+        });
 
-            mLoginProgress.setVisibility(isShow ? View.VISIBLE : View.GONE);
-            mLoginProgress.animate().setDuration(shortAnimTime).alpha(
-                    isShow ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginProgress.setVisibility(isShow ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mLoginProgress.setVisibility(isShow ? View.VISIBLE : View.GONE);
-            mScLoginForm.setVisibility(isShow ? View.GONE : View.VISIBLE);
-        }
     }
 
 

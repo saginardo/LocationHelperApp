@@ -29,19 +29,19 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.activity.CaptureActivity;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
 import com.notinglife.android.LocationHelper.utils.ImageUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
+import com.notinglife.android.LocationHelper.utils.SPUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
-import com.notinglife.android.LocationHelper.utils.UIUtil;
-import com.notinglife.android.LocationHelper.view.EditDeviceDialog;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -103,17 +103,16 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
     private DeviceRawDao mDao;
     private LocationClient mLocationClient;
-    private boolean isStopLocate = false;
 
     private LocationDevice mLocationDevice;
     private LocationDevice undoSaveDevice;
-    private int mLocModeValue = -1;
-    private EditDeviceDialog mEditDeviceDialog;
     public Activity mActivity;
     private MyHandler mHandler;//用于更新UI的handler
+
     private static final String TAG = "AcqDataFragment";
-    private Intent mIntent;
-    //showdialog标志位
+    private static final String IS_TO_SEND_LOCATION_DATA = "is_to_send_location_data";
+
+    //showdialog 标志位
     private final static int DELETE_BY_ID = 0;
     private final static int DELETE_ALL = 1;
     private final static int UPDATE_DEVICE = 2;
@@ -124,11 +123,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private final static int ON_EDIT_DEVICE = 7;
 
     //startActivityForResult 标志位
-    private final static int REQUEST_CODE = 1028;
-    private final static int REQUEST_IMAGE = 1029;
-    private final static int RESULT_FROM_GALLERY = 1030;
-    private final static int REQUEST_FROM_TOOLBAR = 1031;
-    private final static int RESULT_FROM_TOOLBAR = 1032;
+    private final static int REQUEST_QR_CODE = 1028;
+    private final static int REQUEST_QR_IMAGE = 1029;
+    private final static int SCAN_RESULT_FROM_GALLERY = 1030;
+    private final static int SCAN_REQUEST_FROM_TOOLBAR = 1031;
+    private final static int SCAN_RESULT_FROM_TOOLBAR = 1032;
 
 
     @Override
@@ -149,8 +148,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mStartLocation.setOnClickListener(this);
         mStopLocation.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
-        // FIXED: 2017/6/13 撤销对话框还没有重构
         mUndoSave.setOnClickListener(this);
+
         //设置输入框的属性
         EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
@@ -163,9 +162,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mDao = new DeviceRawDao(mActivity);
-
-        List<LocationDevice> locationDevices = mDao.queryWithLimit("0,5");
-        LogUtil.i(TAG, locationDevices.toString());
+        //分页查询
+/*        List<LocationDevice> locationDevices = mDao.queryWithLimit("0,5");
+        LogUtil.i(TAG, locationDevices.toString());*/
 
         //百度地图定位sdk初始化
         mLocationDevice = new LocationDevice();
@@ -174,11 +173,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         initLocation();
         mHandler = new MyHandler(AcqDataFragment.this);
 
-/*        //在onActivityCreated后才能设置actionbar
-        setHasOptionsMenu(true); //Toolbar上的文字和按钮全是Activity传过来的,设置此方法会调用fragment自身的 onCreateOptionMenu
-        ((AppCompatActivity)mActivity).setSupportActionBar(mAcqToolbar);
-        ActionBar supportActionBar = ((AppCompatActivity) mActivity).getSupportActionBar();
-        supportActionBar.setTitle("数据采集");*/
         mAcqToolbar.setTitle("数据采集");
         mAcqToolbar.inflateMenu(R.menu.acq_data_toolbar);
         mAcqToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -186,16 +180,17 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()){
                     case R.id.menu_search_button:
-                        LogUtil.i(TAG,"搜索按钮点击了");
+                        DialogUtil.showSearchDialog(mActivity);
                         break;
                     case R.id.menu_scan_code:
-                        LogUtil.i(TAG,"扫一扫按钮点击了");
+                        //扫码
+                        Intent intent = new Intent(mActivity, CaptureActivity.class);
+                        startActivityForResult(intent, REQUEST_QR_CODE);
                         break;
-                    case R.id.settings:
-                        LogUtil.i(TAG,"设置按钮点击了");
+                    default:
                         break;
                 }
-                return false;
+                return true;
             }
         });
     }
@@ -206,10 +201,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mLocationClient.stop();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-    }
 
     private static class MyHandler extends Handler {
 
@@ -225,67 +216,78 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             AcqDataFragment fragment = mFragment.get();
             if (fragment != null) {// 先判断弱引用是否为空，为空则不更新UI
 
-                int flag = msg.what;
                 //接收到撤销请求，显示并更新对话框UI
-                if (flag == UNDO_SAVE) {
-                    int position = msg.arg1;
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null) {
-                        //fragment.mDao.deleteById(tmpDevice.mID); 这里应该让列表详情页去删除数据而不是这里删
-                        //还需要通知 recyclerview 删除对应元素
-                        Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
-                        intent.putExtra("flag", UNDO_SAVE);
-
-                        Bundle bundle = new Bundle();
-                        bundle.putSerializable("undo_save_device", tmpDevice);
-                        intent.putExtra("undo_save_device", bundle);
-                        LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
-
-                        ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
-                    }
-                }
-                //接收到位置信息回调，更新UI中textviw数据
-                if (flag == ON_RECEIVE_LOCATION_DATA) {
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null) {
-                        fragment.mLatTextView.setText(tmpDevice.mLatitude);
-                        fragment.mLngTextView.setText(tmpDevice.mLongitude);
-                        fragment.mRadiusValue.setText(tmpDevice.mRadius + "米");
-
-                        if (tmpDevice.mLocMode == BDLocation.TypeGpsLocation) {
-                            fragment.mLocMode.setText("GPS定位");
-                        } else {
-                            fragment.mLocMode.setText("网络定位");
+                switch (msg.what){
+                    case UNDO_SAVE:
+                        int position = msg.arg1;
+                        LocationDevice tmpDevice = (LocationDevice) msg.obj;
+                        if (tmpDevice != null) {
+                            //还需要通知 recyclerview 删除对应元素
+                            Intent intent = new Intent("com.notinglife.android.action.UNDO_SAVE");
+                            intent.putExtra("flag", UNDO_SAVE);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("undo_save_device", tmpDevice);
+                            intent.putExtra("undo_save_device", bundle);
+                            LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
+                            ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
                         }
-                    }
-                }
-                if (flag == ON_RECEIVE_SCAN_RESULT) {
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
+                        break;
+                    case ON_RECEIVE_LOCATION_DATA:
+                        LocationDevice tmpDevice2 = (LocationDevice) msg.obj;
+                        if (tmpDevice2 != null) {
+                            fragment.mLatTextView.setText(tmpDevice2.mLatitude);
+                            fragment.mLngTextView.setText(tmpDevice2.mLongitude);
+                            fragment.mRadiusValue.setText(tmpDevice2.mRadius + "米");
 
-                    if (tmpDevice != null && !TextUtils.isEmpty(tmpDevice.mDeviceID)) {
-                        fragment.mDeviceId.setText(tmpDevice.mDeviceID);
-                        String macAddress = tmpDevice.mMacAddress; //16:11:32:17:12:18
-                        String[] split = macAddress.split(":");
-                        if (split.length == 6) {
-                            fragment.mMacAddress_1.setText(split[0]);
-                            fragment.mMacAddress_2.setText(split[1]);
-                            fragment.mMacAddress_3.setText(split[2]);
-                            fragment.mMacAddress_4.setText(split[3]);
-                            fragment.mMacAddress_5.setText(split[4]);
-                            fragment.mMacAddress_6.setText(split[5]);
-                            ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析成功");
-                        } else {
-                            fragment.mDeviceId.setText("");
-                            fragment.mMacAddress_1.setText("");
-                            fragment.mMacAddress_2.setText("");
-                            fragment.mMacAddress_3.setText("");
-                            fragment.mMacAddress_4.setText("");
-                            fragment.mMacAddress_5.setText("");
-                            fragment.mMacAddress_6.setText("");
-                            ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析错误，请检查二维码是否合法");
+                            if (tmpDevice2.mLocMode == BDLocation.TypeGpsLocation) {
+                                fragment.mLocMode.setText("GPS定位");
+                                //如果是GPS地位，才发送定位广播
+                                //发送接收到定位消息的广播  ON_RECEIVE_LOCATION_DATA
+                                //通过sharedpreferences读取配置，是否发送定位信息
+                                boolean sendData = SPUtil.getBoolean(fragment.mActivity, IS_TO_SEND_LOCATION_DATA, false);
+                                if(sendData){
+                                    Intent intent = new Intent("com.notinglife.android.action.ON_RECEIVE_LOCATION_DATA");
+                                    intent.putExtra("flag", ON_RECEIVE_LOCATION_DATA);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putSerializable("ON_RECEIVE_LOCATION_DATA", tmpDevice2);
+                                    intent.putExtra("ON_RECEIVE_LOCATION_DATA", bundle);
+                                    LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
+                                }
+                            } else {
+                                fragment.mLocMode.setText("网络定位");
+                            }
                         }
-                    }
+                        break;
+                    case ON_RECEIVE_SCAN_RESULT:
+                        LocationDevice tmpDevice3 = (LocationDevice) msg.obj;
+
+                        if (tmpDevice3 != null) {
+                            //设备号和mac地址同时验证合格，才设置给UI
+                            if(RegexValidator.isDeviceID(tmpDevice3.mDeviceID) && RegexValidator.isMacAddress(tmpDevice3.mMacAddress)){
+                                fragment.mDeviceId.setText(tmpDevice3.mDeviceID);
+                                String macAddress = tmpDevice3.mMacAddress; //16:11:32:17:12:18
+                                String[] split = macAddress.split(":");
+                                fragment.mMacAddress_1.setText(split[0]);
+                                fragment.mMacAddress_2.setText(split[1]);
+                                fragment.mMacAddress_3.setText(split[2]);
+                                fragment.mMacAddress_4.setText(split[3]);
+                                fragment.mMacAddress_5.setText(split[4]);
+                                fragment.mMacAddress_6.setText(split[5]);
+                                ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析成功");
+                            } else {
+                                fragment.mDeviceId.setText("");
+                                fragment.mMacAddress_1.setText("");
+                                fragment.mMacAddress_2.setText("");
+                                fragment.mMacAddress_3.setText("");
+                                fragment.mMacAddress_4.setText("");
+                                fragment.mMacAddress_5.setText("");
+                                fragment.mMacAddress_6.setText("");
+                                ToastUtil.showShortToast(fragment.mActivity, "MAC地址解析错误，请检查二维码是否合法");
+                            }
+                        }
+                        break;
                 }
+
             }
         }
     }
@@ -301,17 +303,25 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                             Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     startActivity(intent);
                 } else {
-                    ToastUtil.showShortToast(mActivity, "定位中");
-                    mLocationClient.start();
-                    isStopLocate = false;
+                    if(!SPUtil.getBoolean(getActivity(),"ISLOCATING",false)){
+                        SPUtil.setBoolean(getActivity(),"ISLOCATING",true);
+                        ToastUtil.showShortToast(mActivity, "定位中");
+                        mLocationClient.start();
+                    }else {
+                        //如果已经定位，那么不用再 start
+                        ToastUtil.showShortToast(mActivity, "已在后台定位");
+                    }
                 }
                 break;
 
             case R.id.bt_stop_gps:
-                // FIXED: 2017/6/14 增加一个判断符，如果停止定位了 必须重新开启才允许保存数据
-                ToastUtil.showShortToast(mActivity, "停止定位");
-                mLocationClient.stop();
-                isStopLocate = true;
+                if(SPUtil.getBoolean(getActivity(),"ISLOCATING",false)){
+                    ToastUtil.showShortToast(mActivity, "停止定位");
+                    mLocationClient.stop();
+                    SPUtil.setBoolean(getActivity(),"ISLOCATING",false);
+                }else {
+                    ToastUtil.showShortToast(mActivity, "已停止定位");
+                }
                 break;
 
             case R.id.bt_save_data:
@@ -319,8 +329,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
                         mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
-                if (!isStopLocate) {
-                    //mLocationDevice是new出来的，自身一定不为null，但是其属性值没初始化前全为null
+                if (SPUtil.getBoolean(getActivity(),"ISLOCATING",false)) {
+
                     if (TextUtils.isEmpty(mLocationDevice.mLatitude)) {
                         ToastUtil.showShortToast(mActivity, "请先获取GPS地址");
                         return;
@@ -362,6 +372,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
 
                     mDao.add(mLocationDevice);
+
                     //临时保存 撤销功能使用
                     this.undoSaveDevice = mLocationDevice;
 
@@ -387,7 +398,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 }
                 if (tmpDevice.mDeviceID.equals(undoSaveDevice.mDeviceID)) {
                     //LogUtil.i("等待撤销的对象 "+tmpDevice.toString());
-                    UIUtil.showEditDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
+                    DialogUtil.showDeviceDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
                 } else {
                     ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
@@ -438,7 +449,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private void initLocation() {
         LocationClientOption option = new LocationClientOption();
         //可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
-        option.setLocationMode(LocationClientOption.LocationMode.Device_Sensors);
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         //可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
         option.setScanSpan(5000);
         //设置百度坐标
@@ -453,7 +464,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_CODE) {
+        if (requestCode == REQUEST_QR_CODE) {
             //处理扫描结果（在界面上显示）
             if (null != data) {
                 Bundle bundle = data.getExtras();
@@ -469,7 +480,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             }
         }
 
-        if (requestCode == REQUEST_IMAGE || resultCode == RESULT_FROM_GALLERY) {
+        if (requestCode == REQUEST_QR_IMAGE || resultCode == SCAN_RESULT_FROM_GALLERY) {
             if (data != null) {
                 Uri uri = data.getData();
                 try {
@@ -495,9 +506,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
     //从菜单设置的扫一扫，MainActivity得到菜单的扫一扫的数据
     public void setIntentData(Intent intent) {
-        mIntent = intent;
-        if (mIntent != null) {
-            Uri uri = mIntent.getData();
+        Intent intent1 = intent;
+        if (intent1 != null) {
+            Uri uri = intent1.getData();
             try {
                 CodeUtils.analyzeBitmap(ImageUtil.getImageAbsolutePath(mActivity, uri), new CodeUtils.AnalyzeCallback() {
                     @Override

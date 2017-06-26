@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,40 +14,21 @@ import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.avos.avoscloud.AVUser;
-import com.baidu.mapapi.SDKInitializer;
 import com.notinglife.android.LocationHelper.R;
-import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
-import com.notinglife.android.LocationHelper.domain.LocationDevice;
+import com.notinglife.android.LocationHelper.adapter.MyFragmentPagerAdapter;
 import com.notinglife.android.LocationHelper.fragment.AcqDataFragment;
 import com.notinglife.android.LocationHelper.fragment.DeviceListFragment;
 import com.notinglife.android.LocationHelper.fragment.MineFragment;
-import com.notinglife.android.LocationHelper.utils.FileUtil;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
-import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.view.NoScrollViewPager;
-import com.notinglife.android.LocationHelper.view.SearchDialog;
-import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,37 +48,29 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.vp_content)
     NoScrollViewPager mViewPager;
 
-    //startActivityForResult 标志位
-    private final static int REQUEST_CODE = 1028;
-    private final static int REQUEST_IMAGE = 1029;
-    private final static int RESULT_FROM_GALLERY = 1030;
-    private final static int REQUEST_FROM_TOOLBAR = 1031;
-    private final static int RESULT_FROM_TOOLBAR = 1032;
 
     //登录登出标志位
-    private final static int ON_LOGIN = 10;
-    private final static int ON_LOGOUT = 11;
+    private final static int ON_LOGIN = 20;
+    private final static int ON_CONFIRM_LOGOUT = 21;
+    private final static int ON_LOGOUT = 22;
 
-    private Fragment contentFragment;
-    private Fragment mapMarkFragment;
-    private Fragment listDeviceFragment;
-    private List<Fragment> allFragment;
-    private List<String> permissionList;
+    //startActivityForResult 标志位
+    private final static int REQUEST_QR_CODE = 1028;
+    private final static int REQUEST_QR_IMAGE = 1029;
+    private final static int SCAN_RESULT_FROM_GALLERY = 1030;
+    private final static int SCAN_REQUEST_FROM_TOOLBAR = 1031;
+    private final static int SCAN_RESULT_FROM_TOOLBAR = 1032;
+
     private MyFragmentPagerAdapter mFragmentPagerAdapter;
     private static final String TAG = "MainActivity";
     private Activity mActivity;
-    private MenuItem mLogoutMenuItem;
     private MyHandler mHandler;
+    private LocalBroadcastManager mBroadcastManager;
     private MyReceiver mReceiver;
-    private LocalBroadcastManager broadcastManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //mLocationClient = new LocationClient(getApplicationContext());
-        //mLocationClient.registerLocationListener(new MyLocationListener());
-        SDKInitializer.initialize(getApplicationContext());
-        ZXingLibrary.initDisplayOpinion(this);
         setContentView(R.layout.activity_main);
 
         mActivity = this;
@@ -128,30 +100,37 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void initView() {
-        allFragment = new ArrayList<>();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBroadcastManager.unregisterReceiver(mReceiver);
+    }
 
-        //动态注册本地广播，以便通知设备的添加和删除，可以及时更新UI
-        broadcastManager = LocalBroadcastManager.getInstance(mActivity);
+    private void initView() {
+        List<Fragment> allFragment = new ArrayList<>();
+
+        //动态注册本地广播
+        mBroadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.notinglife.android.action.ON_LOGOUT");
+        filter.addAction("com.notinglife.android.action.ON_LOGOUT"); //注册登出事件
         mReceiver = new MyReceiver();
-        broadcastManager.registerReceiver(mReceiver, filter);
+        mBroadcastManager.registerReceiver(mReceiver, filter);
+
         //添加handler用于更新UI
         mHandler = new MyHandler(this);
 
-        contentFragment = new AcqDataFragment();
-        listDeviceFragment = new DeviceListFragment();
-        mapMarkFragment = new MineFragment();
-
+        //向viewpager中添加fragment
+        Fragment contentFragment = new AcqDataFragment();
+        Fragment deviceListFragment = new DeviceListFragment();
+        Fragment mineFragment = new MineFragment();
         allFragment.add(contentFragment);
-        allFragment.add(listDeviceFragment);
-        allFragment.add(mapMarkFragment);
+        allFragment.add(deviceListFragment);
+        allFragment.add(mineFragment);
         mFragmentPagerAdapter = new MyFragmentPagerAdapter(this.getSupportFragmentManager(), allFragment);
         mViewPager.setAdapter(mFragmentPagerAdapter);
         mViewPager.setCurrentItem(0);
         mViewPager.setOffscreenPageLimit(4);
-
+        //viewpager页面监听事件
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -181,88 +160,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
-
-        List<Fragment> fragmentList = new ArrayList<>();
-
-        private MyFragmentPagerAdapter(FragmentManager fm, List<Fragment> list) {
-            super(fm);
-            fragmentList = list;
-        }
-
-        @Override
-        public int getCount() {
-            return fragmentList.size();
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return fragmentList.get(position);
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-/*        getMenuInflater().inflate(R.menu.main_activity_toolbar, menu);
-        if (AVUser.getCurrentUser() != null){
-            mLogoutMenuItem = menu.findItem(R.id.logout);
-            mLogoutMenuItem.setVisible(true);
-        }*/
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_search_button:
-                showSearchDialog(mActivity);
-                return true;
-            case R.id.menu_scan_code:
-                //扫码
-                Intent intent = new Intent(this, CaptureActivity.class);
-                startActivityForResult(intent, REQUEST_CODE);
-                return true;
-            case R.id.menu_sendFile:
-                DeviceRawDao mDao = new DeviceRawDao(mActivity);
-                List<LocationDevice> mLocationDevices = mDao.queryAll();
-                if (mLocationDevices == null || mLocationDevices.size() == 0) {
-                    ToastUtil.showShortToast(mActivity, "当前没有数据，无法发送");
-                }else {
-                    FileUtil.saveListToFile(mActivity, mDao.queryAll());
-
-                    Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-                    String myFilePath = mActivity.getExternalFilesDir("data").getPath();
-                    File file = new File(myFilePath, "data.txt");
-                    if (file.exists()) {
-                        intentShareFile.setType("application/pdf");
-                        intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + file));
-                        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                                "Sharing File...");
-                        intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-                        startActivity(Intent.createChooser(intentShareFile, "Share File"));
-                    } else {
-                        ToastUtil.showShortToast(mActivity, "没有数据文件");
-                    }
-                }
-
-                break;
-            case R.id.logout:
-                AVUser.logOut();
-                mLogoutMenuItem.setVisible(false);
-                //通知recyclerview刷新
-                Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
-                logoutIntent.putExtra("flag", ON_LOGOUT);
-                LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
-
-                ToastUtil.showShortToast(getApplicationContext(),"已登出本系统");
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    //获取权限
+    //6.0版本后获取动态权限
     private void initPermission() {
-        permissionList = new ArrayList<>();
+        List<String> permissionList = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         }
@@ -309,50 +209,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //自定义搜索框
-    public static void showSearchDialog(Activity activity) {
-
-        final SearchDialog mSearchDialog = new SearchDialog(activity, R.layout.device_mysearch_dialog);
-
-        //自定义窗体参数
-        Window dialogWindow = mSearchDialog.getWindow();
-        dialogWindow.setGravity(Gravity.TOP);
-        WindowManager.LayoutParams attributes = dialogWindow.getAttributes();
-        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
-        attributes.width = (int) (metrics.widthPixels * 0.95);
-        attributes.height = (int) (metrics.heightPixels * 0.6);
-        attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND; //设置背景模糊
-        attributes.dimAmount = 0.5f;
-        //attributes.alpha = 0.9f; //对话框透明度
-        mSearchDialog.getWindow().setAttributes(attributes);
-
-
-        View view = mSearchDialog.getCustomView();
-        TextView mTextView = (TextView) view.findViewById(R.id.tv_backspace);
-        mTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSearchDialog.dismiss();
-            }
-        });
-
-        //展示对话框
-        mSearchDialog.show();
-    }
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
+
         if(data!=null){  //避免直接返回，没有数据导致的空指针
-            if (requestCode == REQUEST_CODE || requestCode == REQUEST_IMAGE || resultCode== RESULT_FROM_GALLERY) {
+            if (requestCode == REQUEST_QR_CODE || requestCode == REQUEST_QR_IMAGE || resultCode== SCAN_RESULT_FROM_GALLERY) {
+                AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
                 item.onActivityResult(requestCode, resultCode, data);
-                //LogUtil.i(resultCode+"-----");
             }
-            LogUtil.i(TAG," resultCode "+ resultCode);
-            if(resultCode == RESULT_FROM_TOOLBAR){
-                LogUtil.i(TAG,"---"+ data.getData().toString());
+
+            if(resultCode == SCAN_RESULT_FROM_TOOLBAR){
+                AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
                 item.setIntentData(data);
             }
         }
@@ -376,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 //接收注销本地广播，更新UI等逻辑
                 if (flag == ON_LOGOUT) {
                     //注销后MainActivity的UI更新
-                    mainActivity.mLogoutMenuItem.setVisible(false);
+                    //mainActivity.mLogoutMenuItem.setVisible(false);//已经在mineFragment中更新了UI
                 }
             }
         }
@@ -395,8 +265,6 @@ public class MainActivity extends AppCompatActivity {
                 message.what = ON_LOGOUT;
                 mHandler.sendMessage(message);
             }
-
-
         }
     }
 

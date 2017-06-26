@@ -32,12 +32,13 @@ public class CaptureActivity extends AppCompatActivity {
 
     public static boolean isOpen = false;
     private static final String TAG = "CaptureActivity";
+
     //startActivityForResult 标志位
-    private final static int REQUEST_CODE = 1028;
-    private final static int REQUEST_IMAGE = 1029;
-    private final static int RESULT_FROM_GALLERY = 1030;
-    private final static int REQUEST_FROM_TOOLBAR = 1031;
-    private final static int RESULT_FROM_TOOLBAR = 1032;
+    private final static int REQUEST_QR_CODE = 1028;
+    private final static int REQUEST_QR_IMAGE = 1029;
+    private final static int SCAN_RESULT_FROM_GALLERY = 1030;
+    private final static int SCAN_REQUEST_FROM_TOOLBAR = 1031;
+    private final static int SCAN_RESULT_FROM_TOOLBAR = 1032;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,23 +79,23 @@ public class CaptureActivity extends AppCompatActivity {
                 Intent intentFromGallery = new Intent(Intent.ACTION_GET_CONTENT);
                 intentFromGallery.addCategory(Intent.CATEGORY_OPENABLE);
                 intentFromGallery.setType("image/*");
-                startActivityForResult(intentFromGallery, REQUEST_FROM_TOOLBAR);
+                startActivityForResult(intentFromGallery, SCAN_REQUEST_FROM_TOOLBAR);
             }
         });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if( requestCode==REQUEST_IMAGE ){
+        if( requestCode== REQUEST_QR_IMAGE){
             //intent传递给MainActivity
-            this.setResult(RESULT_FROM_GALLERY, data);
+            this.setResult(SCAN_RESULT_FROM_GALLERY, data);
             super.onActivityResult(requestCode, resultCode, data);
             finish();
         }
-        if( requestCode == REQUEST_FROM_TOOLBAR){
+        if( requestCode == SCAN_REQUEST_FROM_TOOLBAR){
             //intent传递给MainActivity
             LogUtil.i(TAG," data.getData().toString()");
-            this.setResult(RESULT_FROM_TOOLBAR, data);
+            this.setResult(SCAN_RESULT_FROM_TOOLBAR, data);
             super.onActivityResult(requestCode, resultCode, data);
             finish();
         }
@@ -122,7 +123,7 @@ public class CaptureActivity extends AppCompatActivity {
             Intent resultIntent = new Intent();
             Bundle bundle = new Bundle();
             bundle.putInt(CodeUtils.RESULT_TYPE, CodeUtils.RESULT_FAILED);
-            bundle.putString(CodeUtils.RESULT_STRING, "");
+            bundle.putString(CodeUtils.RESULT_STRING, ""); //解析失败，返回空串
             resultIntent.putExtras(bundle);
             CaptureActivity.this.setResult(RESULT_OK, resultIntent);
             CaptureActivity.this.finish();

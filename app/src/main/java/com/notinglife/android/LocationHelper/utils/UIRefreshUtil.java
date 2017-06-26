@@ -16,10 +16,10 @@ import com.avos.avoscloud.AVUser;
 
 public class UIRefreshUtil {
 
-
     //登录登出标志位
-    private final static int ON_LOGIN = 10;
-    private final static int ON_LOGOUT = 11;
+    private final static int ON_LOGIN = 20;
+    private final static int ON_CONFIRM_LOGOUT = 21;
+    private final static int ON_LOGOUT = 22;
 
 
     public static void onLogout(Context context){

@@ -39,19 +39,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <android.support.v4.widget.SwipeRefreshLayout
+<!--            <android.support.v4.widget.SwipeRefreshLayout
                 android:id="@+id/swipe_fresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent">-->
                 <com.notinglife.android.LocationHelper.view.EmptyRecyclerView
                     android:id="@+id/id_recyclerview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                 </com.notinglife.android.LocationHelper.view.EmptyRecyclerView>
-            </android.support.v4.widget.SwipeRefreshLayout>
-            <include
-                android:id="@+id/id_empty_view"
-                layout="@layout/layout_empty_view"/>
+                <include
+                    android:id="@+id/id_empty_view"
+                    layout="@layout/layout_empty_view"/>
+<!--            </android.support.v4.widget.SwipeRefreshLayout>-->
+
 
         </LinearLayout>
 

@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVAnalytics;
@@ -31,6 +30,7 @@ import com.notinglife.android.LocationHelper.utils.ToastUtil;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.avos.avoscloud.AVException.EMAIL_TAKEN;
 import static com.avos.avoscloud.AVException.USERNAME_TAKEN;
@@ -49,8 +49,6 @@ public class RegisterActivity extends AppCompatActivity {
     Button mUsernameRegisterButton;
     @BindView(R.id.email_register_form)
     LinearLayout mEmailRegisterForm;
-    @BindView(R.id.register_form)
-    ScrollView mRegisterForm;
     @BindView(R.id.emailaddress)
     EditText mEmailAddress;
     @BindView(R.id.password2)
@@ -58,14 +56,14 @@ public class RegisterActivity extends AppCompatActivity {
     @BindView(R.id.emailaddress2)
     EditText mEmailAddress2;
 
-
     private static final String TAG = "RegisterActivity";
+    Unbinder mUnbinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-        ButterKnife.bind(this);
+        mUnbinder = ButterKnife.bind(this);
 
 
         setSupportActionBar(mToolBar);
@@ -233,5 +231,9 @@ public class RegisterActivity extends AppCompatActivity {
         AVAnalytics.onResume(this);
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnbinder.unbind();
+    }
 }

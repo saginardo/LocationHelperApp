@@ -11,7 +11,6 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -33,10 +32,12 @@ import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.view.EmptyRecyclerView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 
 /**
@@ -68,10 +69,11 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
     private final static int ON_RECEIVE_SCAN_RESULT = 6;
     private final static int ON_EDIT_DEVICE = 7;
+    private final static int ON_DELETE_ALL_DATA = 8;
 
 
-    @BindView(R.id.swipe_fresh)
-    SwipeRefreshLayout mSwipeFresh;
+
+
     @BindView(R.id.device_list_toolBar)
     Toolbar mDeviceListToolBar;
     @BindView(R.id.progress_bar)
@@ -84,6 +86,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     public Activity mActivity;
     private LocalBroadcastManager broadcastManager;
     private MyReceiver mReceiver;
+    private Unbinder mUnbinder;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,10 +98,13 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = View.inflate(mActivity, R.layout.fragment_device_list, null);
-        ButterKnife.bind(this, view);
+        mUnbinder = ButterKnife.bind(this, view);
 
         mDao = new DeviceRawDao(mActivity);
-        mList = mDao.queryAll();
+        mList = new ArrayList<>();
+        if(mDao.queryAll()!=null){
+            mList.addAll(mDao.queryAll());
+        }
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(mActivity);
         mRecyclerView.setLayoutManager(layoutManager);
@@ -160,40 +166,11 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
             ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mCallback);
             itemTouchHelper.attachToRecyclerView(mRecyclerView);*/
 
-        //下拉刷新逻辑
-        mSwipeFresh.setColorSchemeResources(R.color.colorPrimaryDark);
-        mSwipeFresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refreshData();
-            }
-        });
+
         return view;
     }
 
-    //数据刷新逻辑
-    private void refreshData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mList.clear();
-                        mList.addAll(mDao.queryAll());
-                        mDeviceRecyclerAdapter.notifyDataSetChanged();
-                        //操作完成，刷新结束
-                        mSwipeFresh.setRefreshing(false);
-                    }
-                });
-            }
-        }).start();
-    }
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -216,8 +193,14 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     case R.id.menu_search_button:
                         DialogUtil.showSearchDialog(mActivity);
                         return true;
+                    case R.id.menu_refresh_mode:
+                        if(mDao.queryAll()!=null){
+                            mList.clear();
+                            mList.addAll(mDao.queryAll());
+                            mDeviceRecyclerAdapter.notifyDataSetChanged();
+                        }
+                        return true;
                     case R.id.menu_edit_mode:
-
                         return true;
                     default:
                         return false;
@@ -236,23 +219,19 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        mUnbinder.unbind();
     }
 
     private static class MyHandler extends Handler {
-
         WeakReference<DeviceListFragment> mFragment;
-
         MyHandler(DeviceListFragment fragment) {
             mFragment = new WeakReference<>(fragment);
         }
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
             int flag = msg.what;
             int position = msg.arg1;
-
             DeviceListFragment fragment = mFragment.get();
 
             if (fragment != null) {
@@ -312,7 +291,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
 
-                // TODO: 2017/6/26 待删除的功能
+
                 if (flag == ON_EDIT_DEVICE) {
                     LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
@@ -327,6 +306,10 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                             ToastUtil.showShortToast(fragment.getActivity(), "修改失败，请检查ID是否输入错误");
                         }
                     }
+                }
+                if(flag==ON_DELETE_ALL_DATA){
+                    fragment.mList.clear();
+                    fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
 
             }
@@ -528,6 +511,11 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 message.obj = tmpDevice;
                 message.arg1 = intExtra;
                 //LogUtil.i(TAG,"消息标志位 "+ message.what +" , 消息对象 "+message.obj+" , 消息位置"+intExtra);
+                mHandler.sendMessage(message);
+            }
+            if(flag== ON_DELETE_ALL_DATA){
+                Message message = Message.obtain();
+                message.what = ON_DELETE_ALL_DATA;
                 mHandler.sendMessage(message);
             }
 

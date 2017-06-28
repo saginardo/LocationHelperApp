@@ -62,30 +62,14 @@
                 android:layout_height="1dp"
                 android:background="@color/mine_divider"/>
 
-            <Button
-                android:id="@+id/backup_file_via_avcloud"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:background="@color/mine_button_background"
-                android:text="云备份文件"
-                android:textAlignment="textStart"
-                android:textColor="@color/mine_text_color"
-                android:textSize="18sp"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/mine_divider"/>
-
             <TextView
-                android:id="@+id/backup_database_via_avcloud"
+                android:id="@+id/backup_via_avcloud"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:background="@color/mine_button_background"
                 android:gravity="center_vertical"
-                android:text="云备份数据库"
+                android:text="备份到云端"
                 android:textColor="@color/mine_text_color"
                 android:textSize="18sp"/>
 
@@ -112,12 +96,12 @@
                 android:background="@color/mine_divider"/>
 
             <Button
-                android:id="@+id/sync_with_avcloud"
+                android:id="@+id/delete_from_avcloud"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:background="@color/mine_button_background"
-                android:text="同步云端数据库"
+                android:text="清除云端数据"
                 android:textAlignment="textStart"
                 android:textColor="@color/mine_text_color"
                 android:textSize="18sp"/>

@@ -13,7 +13,6 @@
         android:id="@+id/menu_logout"
         android:icon="@drawable/ic_delete"
         android:title="注销登录"
-        android:visible="false"
         app:showAsAction="never"/>
     <item
         android:id="@+id/settings"

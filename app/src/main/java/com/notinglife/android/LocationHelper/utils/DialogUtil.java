@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.domain.User;
+import com.notinglife.android.LocationHelper.view.ChoiceDialog;
 import com.notinglife.android.LocationHelper.view.EditDeviceDialog;
 import com.notinglife.android.LocationHelper.view.EditUserDialog;
 import com.notinglife.android.LocationHelper.view.SearchDialog;
@@ -44,6 +45,8 @@ public class DialogUtil {
     private final static int ON_EDIT_USER_EMAIL = 30;
     private final static int ON_CHANGE_USER_PASSWORD = 31;
 
+
+    private final static int LOCATION_BACKGROUND_TIME = 40;
     /**
      * 展示统一风格的对话框，其中包含对话框UI中的数据更新和不同对话框UI的替换
      *
@@ -238,6 +241,48 @@ public class DialogUtil {
 
         //展示对话框
         mSearchDialog.show();
+    }
+
+
+    public static void showChoiceDialog(final Activity activity, final Handler handler, String title,int flag, String... strings) {
+
+        final ChoiceDialog mChoiceDialog = new ChoiceDialog(activity,title, strings);
+        mChoiceDialog.setFlag(flag);
+
+        //自定义窗体参数
+        WindowManager.LayoutParams attributes = mChoiceDialog.getWindow().getAttributes();
+        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        attributes.width = (int) (metrics.widthPixels * 0.9);
+        attributes.height = (int) (metrics.heightPixels * 0.9);
+        attributes.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+        attributes.dimAmount = 0.5f;
+        mChoiceDialog.getWindow().setAttributes(attributes);
+
+
+        //响应确定键的点击事件
+        mChoiceDialog.setPositiveOnclickListener(new ChoiceDialog.onPositiveOnclickListener() {
+            @Override
+            public void onPositiveClick() {
+
+                    String checkButton = mChoiceDialog.getCheckButtonName();
+                    //LogUtil.i(TAG,"选择的按钮是："+checkButton.getText());
+                    Message message = Message.obtain();
+                    message.what = LOCATION_BACKGROUND_TIME;
+                    message.obj = checkButton;
+                    handler.sendMessage(message);
+                mChoiceDialog.dismiss();
+            }
+        });
+
+        //响应取消键的点击事件
+        mChoiceDialog.setNegativeOnclickListener(new ChoiceDialog.onNegativeOnclickListener() {
+            @Override
+            public void onNegativeClick() {
+                mChoiceDialog.dismiss();
+            }
+        });
+        //展示对话框
+        mChoiceDialog.show();
     }
 
 

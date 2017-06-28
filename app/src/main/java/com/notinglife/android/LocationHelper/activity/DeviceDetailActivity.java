@@ -83,7 +83,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private BaiduMap mBaiduMap;
     private Boolean isFirstLocate = true;
     private static final String TAG = "DeviceDetailActivity";
-    private static final String IS_TO_SEND_LOCATION_DATA = "is_to_send_location_data";
+    private static final String ToSendLocation = "ToSendLocation";
+    private static final String IsLocation = "IsLocation";
     private LocationDevice mLocationDevice;
 
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
@@ -156,20 +157,20 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mBtRelocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean value = SPUtil.getBoolean(getApplicationContext(),
-                        IS_TO_SEND_LOCATION_DATA, false);
 
-                if(SPUtil.getBoolean(DeviceDetailActivity.this,"ISLOCATING",false)){
-                    if(value){
+                //先判断 主页面是否在定位中
+                if(SPUtil.getBoolean(DeviceDetailActivity.this,IsLocation,false)){
+                    if(SPUtil.getBoolean(getApplicationContext(),
+                            ToSendLocation, false)){
                         //如果获取，则再点一下为不获取
                         ToastUtil.showShortToast(getApplicationContext(),"已停止获取定位信息");
                         SPUtil.setBoolean(getApplicationContext(),
-                                IS_TO_SEND_LOCATION_DATA, false);
+                                ToSendLocation, false);
                     }else {
                         //如果不获取，则再点一下为获取
                         ToastUtil.showShortToast(getApplicationContext(),"正在重新获取定位信息");
                         SPUtil.setBoolean(getApplicationContext(),
-                                IS_TO_SEND_LOCATION_DATA, true);
+                                ToSendLocation, true);
                     }
                 }else {
                     ToastUtil.showShortToast(getApplicationContext(),"请在数据采集页面重新获取定位信息");
@@ -200,11 +201,11 @@ public class DeviceDetailActivity extends AppCompatActivity {
             DeviceDetailActivity deviceDetailActivity = mDetailActivity.get();
             if (deviceDetailActivity != null) {// 先判断弱引用是否为空，为空则不更新UI
                 int flag = msg.what;
-                //接收注销本地广播，更新UI等逻辑
+                //
                 if (flag == ON_RECEIVE_LOCATION_DATA) {
                     LogUtil.i(TAG, msg.obj.toString());
                     boolean receiveData = SPUtil.getBoolean(deviceDetailActivity.getApplicationContext(),
-                            IS_TO_SEND_LOCATION_DATA, false);
+                            ToSendLocation, false);
                     if (receiveData) {
                         LocationDevice locationDevice = (LocationDevice) msg.obj;
                         deviceDetailActivity.mTvLatInfo.setText(locationDevice.mLatitude);
@@ -260,12 +261,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 return true;
             case R.id.device_detail_save:
 
-                mToolBarEdit.setVisible(true);
-                EditTextUtil.ISTOEDIT(false, mTvDeviceNumber, mMacEditText1, mMacEditText2,
-                        mMacEditText3, mMacEditText4, mMacEditText5, mMacEditText6);
-                mToolBarSave.setVisible(false);
-                mBtRelocation.setVisibility(View.GONE);
-
                 //保存修改前的设备信息
                 LocationDevice beforeChangeDevice = mLocationDevice;
                 LogUtil.i(TAG, "修改前设备信息：" + beforeChangeDevice.toString());
@@ -309,11 +304,14 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
                 }
 
-                //都没问题后，进行覆盖操作
+                //都没问题后，进行覆盖操作;这里不需要操作数据库，因为用户看到的是保存好的界面，回退到DeviceListFragment中，数据已经更新，重新进来也是新的数据
                 mLocationDevice.mDeviceID = tmp1;
                 mLocationDevice.mMacAddress = tmp2;
+                mLocationDevice.mLatitude = mTvLatInfo.getText().toString();
+                mLocationDevice.mLongitude = mTvLngInfo.getText().toString();
 
-                //发送DATA_CHANGED本地广播
+
+                //发送DATA_CHANGED本地广播，用来更新DeviceListFragment中RecyclerView
                 Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
                 intent.putExtra("flag", ON_EDIT_DEVICE);
                 intent.putExtra(DEVICEPOSITION, getIntent().getIntExtra(DEVICEPOSITION, -1)); //把设备position传回 DeviceListFragment中，用于更新UI
@@ -321,7 +319,17 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 bundle.putSerializable("on_edit_device", mLocationDevice);
                 intent.putExtra("on_edit_device", bundle);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
                 ToastUtil.showShortToast(this, "成功保存修改");
+                //修改成功才改变UI
+                mToolBarEdit.setVisible(true);
+                EditTextUtil.ISTOEDIT(false, mTvDeviceNumber, mMacEditText1, mMacEditText2,
+                        mMacEditText3, mMacEditText4, mMacEditText5, mMacEditText6);
+                mToolBarSave.setVisible(false);
+                mBtRelocation.setVisibility(View.GONE);
+
+                //修改成功的同时，停止发送数据
+                SPUtil.getBoolean(getApplicationContext(), ToSendLocation, false);
 
                 return true;
             case R.id.device_detail_delete:

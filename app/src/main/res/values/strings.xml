@@ -15,7 +15,7 @@
     <string name="mine_login_hint">登陆后同步云端</string>
     <string name="mine_device_repair">待维护设备列表</string>
     <string name="mine_main_info">我的详细信息</string>
-    <string name="mine_setting">设置</string>
+    <string name="mine_setting">系统设置</string>
     <string name="mine_about">关于</string>
     <string name="username">用户名</string>
     <string name="username_hint">用户名字母开头的5到18位字符，不含特殊字符</string>

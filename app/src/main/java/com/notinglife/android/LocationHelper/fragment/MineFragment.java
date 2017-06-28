@@ -18,16 +18,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
 import com.notinglife.android.LocationHelper.activity.ManageDataActivity;
+import com.notinglife.android.LocationHelper.activity.SettingsActivity;
 import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
 
@@ -35,6 +34,7 @@ import java.lang.ref.WeakReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 
 /**
@@ -62,17 +62,15 @@ public class MineFragment extends Fragment {
     Button mMineManageData;
     @BindView(R.id.mine_about)
     Button mMineAbout;
-    @BindView(R.id.rl_user_info)
-    RelativeLayout mRlUserInfo;
-    @BindView(R.id.mine_logout)
-    Button mMineLogout;
     @BindView(R.id.mine_toolBar)
     Toolbar mMineToolBar;
+    @BindView(R.id.mine_setting)
+    Button mMineSetting;
 
 
     private Activity mActivity;
     private MyHandler mHandler;
-
+    private Unbinder mUnbinder;
     private static final String TAG = "MineFragment";
 
     //登录登出标志位
@@ -94,18 +92,16 @@ public class MineFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = View.inflate(mActivity, R.layout.fragment_mine, null);
-        ButterKnife.bind(this, view);
+        mUnbinder = ButterKnife.bind(this, view);
 
         if (AVUser.getCurrentUser() != null) {
             //LogUtil.i(TAG, AVUser.getCurrentUser().toString());
             String username = AVUser.getCurrentUser().getUsername();
             mTvLoginTitle.setText(username);
             mTvLoginHint.setText("欢迎使用本系统");
-            mMineLogout.setVisibility(View.VISIBLE);
         } else {
             mTvLoginTitle.setText("请登录系统");
             mTvLoginHint.setText("登陆后同步云端");
-            mMineLogout.setVisibility(View.GONE);
         }
 
         mTvLoginTitle.setOnClickListener(new View.OnClickListener() {
@@ -117,15 +113,12 @@ public class MineFragment extends Fragment {
                 }
             }
         });
-        mMineLogout.setOnClickListener(new View.OnClickListener() {
+/*        mMineLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
-                //下面2行代码放在handler中执行更新ui
-                //UIRefreshUtil.onLogout(mActivity.getApplicationContext());
-                //ToastUtil.showShortToast(mActivity, "已登出本系统");
             }
-        });
+        });*/
 
         mMineFullInfo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,6 +130,12 @@ public class MineFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(mActivity, ManageDataActivity.class));
+            }
+        });
+        mMineSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mActivity, SettingsActivity.class));
             }
         });
         return view;
@@ -159,7 +158,7 @@ public class MineFragment extends Fragment {
         mMineToolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
+                switch (item.getItemId()) {
                     case R.id.menu_login:
 /*                        AVUser.logOut();
                         mMineToolBar.getMenu().getItem(0).setVisible(false);
@@ -171,17 +170,12 @@ public class MineFragment extends Fragment {
                         break;
 
                     case R.id.menu_logout:
-                        AVUser.logOut();
-                        mMineToolBar.getMenu().getItem(1).setVisible(false);
-                        //通知注销后的界面刷新刷新
-                        Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
-                        logoutIntent.putExtra("flag", ON_LOGOUT);
-                        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(logoutIntent);
-                        ToastUtil.showShortToast(mActivity,"已登出本系统");
+
+                        DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
                         break;
 
                     case R.id.settings:
-                        LogUtil.i(TAG,"设置按钮点击了");
+                        startActivity(new Intent(mActivity, SettingsActivity.class));
                         break;
                 }
                 return false;
@@ -193,6 +187,12 @@ public class MineFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mBroadcastManager.unregisterReceiver(mReceiver);
+        mUnbinder.unbind();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 
     private static class MyHandler extends Handler {
@@ -212,10 +212,10 @@ public class MineFragment extends Fragment {
                 //接收注销本地广播，更新UI等逻辑
                 if (flag == ON_LOGOUT) {
                     //注销的UI更新
+                    fragment.mMineToolBar.getMenu().getItem(1).setVisible(false);
                     fragment.mTvLoginTitle.setText("请登录系统");
                     fragment.mTvLoginHint.setText("登陆后同步云端");
-                    fragment.mMineLogout.setVisibility(View.GONE);
-                    fragment.getActivity().startActivity(new Intent(fragment.getActivity(),LoginActivity.class));
+                    fragment.getActivity().startActivity(new Intent(fragment.getActivity(), LoginActivity.class));
                     fragment.getActivity().finish();
                 }
 
@@ -246,5 +246,6 @@ public class MineFragment extends Fragment {
             }
         }
     }
+
 
 }

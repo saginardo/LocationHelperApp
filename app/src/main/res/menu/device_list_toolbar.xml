@@ -9,9 +9,14 @@
         app:showAsAction="always"/>
 
     <item
+        android:id="@+id/menu_refresh_mode"
+        android:icon="@drawable/ic_delete"
+        android:title="刷新数据"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/menu_edit_mode"
         android:icon="@drawable/ic_delete"
         android:title="编辑模式"
         app:showAsAction="never"/>
-
 </menu>

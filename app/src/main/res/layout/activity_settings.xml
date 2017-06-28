@@ -2,11 +2,13 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context="com.notinglife.android.LocationHelper.activity.ManageDataActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/mine_toolBar"
+        android:id="@+id/system_setting_toolBar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
@@ -15,50 +17,16 @@
     </android.support.v7.widget.Toolbar>
 
     <LinearLayout
-        android:layout_below="@id/mine_toolBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <RelativeLayout
-            android:id="@+id/rl_user_info"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp">
-
-            <ImageView
-                android:id="@+id/iv_user_image"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:background="@drawable/ic_action_user"/>
-
-            <TextView
-                android:id="@+id/tv_login_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_toEndOf="@id/iv_user_image"
-                android:text="@string/mine_login_title"
-                android:textSize="22sp"/>
-
-            <TextView
-                android:id="@+id/tv_login_hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_login_title"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="10dp"
-                android:layout_toRightOf="@id/iv_user_image"
-                android:text="@string/mine_login_hint"
-                android:textSize="14sp"/>
-        </RelativeLayout>
+        android:layout_below="@id/system_setting_toolBar"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:orientation="vertical">
 
             <View
@@ -66,13 +34,46 @@
                 android:layout_height="1dp"
                 android:background="@color/mine_divider"/>
 
-            <Button
-                android:id="@+id/mine_device_to_repair"
+            <TextView
+                android:id="@+id/primary_location_mode"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:background="@color/mine_button_background"
-                android:text="@string/mine_device_repair"
+                android:gravity="center_vertical"
+                android:text="优先定位模式"
+                android:textColor="@color/mine_text_color"
+                android:textSize="18sp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/mine_divider"/>
+
+            <TextView
+                android:id="@+id/location_time"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="20dp"
+                android:background="@color/mine_button_background"
+                android:gravity="center_vertical"
+                android:text="后台定位时长"
+                android:textColor="@color/mine_text_color"
+                android:textSize="18sp"/>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/mine_divider"/>
+
+            <!--<Button
+                android:id="@+id/download_all_data"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="20dp"
+                android:background="@color/mine_button_background"
+                android:text="下载云端文件"
                 android:textAlignment="textStart"
                 android:textColor="@color/mine_text_color"
                 android:textSize="18sp"/>
@@ -83,12 +84,12 @@
                 android:background="@color/mine_divider"/>
 
             <Button
-                android:id="@+id/mine_full_info"
+                android:id="@+id/delete_from_avcloud"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:background="@color/mine_button_background"
-                android:text="@string/mine_main_info"
+                android:text="清除云端数据"
                 android:textAlignment="textStart"
                 android:textColor="@color/mine_text_color"
                 android:textSize="18sp"/>
@@ -99,12 +100,12 @@
                 android:background="@color/mine_divider"/>
 
             <Button
-                android:id="@+id/mine_manage_data"
+                android:id="@+id/delete_all_data"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginStart="20dp"
                 android:background="@color/mine_button_background"
-                android:text="@string/mine_manage_data"
+                android:text="清除本地所有数据"
                 android:textAlignment="textStart"
                 android:textColor="@color/mine_text_color"
                 android:textSize="18sp"/>
@@ -112,42 +113,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/mine_divider"/>
-
-            <Button
-                android:id="@+id/mine_setting"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:background="@color/mine_button_background"
-                android:text="@string/mine_setting"
-                android:textAlignment="textStart"
-                android:textColor="@color/mine_text_color"
-                android:textSize="18sp"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/mine_divider"/>
-
-            <Button
-                android:id="@+id/mine_about"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginStart="20dp"
-                android:background="@color/mine_button_background"
-                android:text="@string/mine_about"
-                android:textAlignment="textStart"
-                android:textColor="@color/mine_text_color"
-                android:textSize="18sp"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/mine_divider"/>
+                android:background="@color/mine_divider"/>-->
         </LinearLayout>
     </LinearLayout>
-
-
 </RelativeLayout>
-
-

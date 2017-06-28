@@ -45,6 +45,7 @@ import java.lang.ref.WeakReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * ${DESCRIPTION}
@@ -108,9 +109,13 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     private LocationDevice undoSaveDevice;
     public Activity mActivity;
     private MyHandler mHandler;//用于更新UI的handler
+    private Unbinder mUnbinder;
 
     private static final String TAG = "AcqDataFragment";
-    private static final String IS_TO_SEND_LOCATION_DATA = "is_to_send_location_data";
+
+    //SpUtil用的key
+    private static final String IsLocation = "IsLocation";
+    private static final String ToSendLocation = "ToSendLocation";
 
     //showdialog 标志位
     private final static int DELETE_BY_ID = 0;
@@ -143,7 +148,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_acq_data, container, false);
-        ButterKnife.bind(this, view);
+        mUnbinder = ButterKnife.bind(this, view);
 
         mStartLocation.setOnClickListener(this);
         mStopLocation.setOnClickListener(this);
@@ -196,6 +201,12 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mUnbinder.unbind();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         mLocationClient.stop();
@@ -241,20 +252,20 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
                             if (tmpDevice2.mLocMode == BDLocation.TypeGpsLocation) {
                                 fragment.mLocMode.setText("GPS定位");
-                                //如果是GPS地位，才发送定位广播
-                                //发送接收到定位消息的广播  ON_RECEIVE_LOCATION_DATA
-                                //通过sharedpreferences读取配置，是否发送定位信息
-                                boolean sendData = SPUtil.getBoolean(fragment.mActivity, IS_TO_SEND_LOCATION_DATA, false);
-                                if(sendData){
-                                    Intent intent = new Intent("com.notinglife.android.action.ON_RECEIVE_LOCATION_DATA");
-                                    intent.putExtra("flag", ON_RECEIVE_LOCATION_DATA);
-                                    Bundle bundle = new Bundle();
-                                    bundle.putSerializable("ON_RECEIVE_LOCATION_DATA", tmpDevice2);
-                                    intent.putExtra("ON_RECEIVE_LOCATION_DATA", bundle);
-                                    LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
-                                }
+
                             } else {
                                 fragment.mLocMode.setText("网络定位");
+                            }
+                            //通过sharedpreferences读取配置，是否发送定位信息
+                            boolean sendData = SPUtil.getBoolean(fragment.mActivity, ToSendLocation, false);
+                            LogUtil.i(TAG,"是否发送数据 : "+(sendData?"是的":"不是"));
+                            if(sendData){
+                                Intent intent = new Intent("com.notinglife.android.action.ON_RECEIVE_LOCATION_DATA");
+                                intent.putExtra("flag", ON_RECEIVE_LOCATION_DATA);
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable("ON_RECEIVE_LOCATION_DATA", tmpDevice2);
+                                intent.putExtra("ON_RECEIVE_LOCATION_DATA", bundle);
+                                LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);
                             }
                         }
                         break;
@@ -303,8 +314,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                             Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                     startActivity(intent);
                 } else {
-                    if(!SPUtil.getBoolean(getActivity(),"ISLOCATING",false)){
-                        SPUtil.setBoolean(getActivity(),"ISLOCATING",true);
+                    if(!SPUtil.getBoolean(getActivity(),IsLocation,false)){
+                        SPUtil.setBoolean(getActivity(),IsLocation,true);
                         ToastUtil.showShortToast(mActivity, "定位中");
                         mLocationClient.start();
                     }else {
@@ -315,10 +326,10 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 break;
 
             case R.id.bt_stop_gps:
-                if(SPUtil.getBoolean(getActivity(),"ISLOCATING",false)){
+                if(SPUtil.getBoolean(getActivity(),IsLocation,false)){
                     ToastUtil.showShortToast(mActivity, "停止定位");
                     mLocationClient.stop();
-                    SPUtil.setBoolean(getActivity(),"ISLOCATING",false);
+                    SPUtil.setBoolean(getActivity(),IsLocation,false);
                 }else {
                     ToastUtil.showShortToast(mActivity, "已停止定位");
                 }
@@ -329,7 +340,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
                         mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
 
-                if (SPUtil.getBoolean(getActivity(),"ISLOCATING",false)) {
+                if (SPUtil.getBoolean(getActivity(),IsLocation,false)) {
 
                     if (TextUtils.isEmpty(mLocationDevice.mLatitude)) {
                         ToastUtil.showShortToast(mActivity, "请先获取GPS地址");
@@ -370,7 +381,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     mLocationDevice.mMacAddress = macAddress;
                     //LogUtil.i("设备ID:" + mLocationDevice.mDeiviceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
                     //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
-
                     mDao.add(mLocationDevice);
 
                     //临时保存 撤销功能使用

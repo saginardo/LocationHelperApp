@@ -27,8 +27,10 @@ import com.baidu.mapapi.model.LatLng;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
@@ -37,6 +39,7 @@ import java.lang.ref.WeakReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.notinglife.android.LocationHelper.R.id.device_detail_edit;
 
@@ -83,12 +86,18 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private BaiduMap mBaiduMap;
     private Boolean isFirstLocate = true;
     private static final String TAG = "DeviceDetailActivity";
+
     private static final String ToSendLocation = "ToSendLocation";
     private static final String IsLocation = "IsLocation";
-    private LocationDevice mLocationDevice;
 
+    private LocationDevice mLocationDevice;
+    private Unbinder mUnBinder;
+
+    private final static int DELETE_BY_ID = 0;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
     private static final int ON_EDIT_DEVICE = 7;
+
+    private final static int ON_CONFIRM_DELETE = 22;
 
     private MenuItem mToolBarEdit;
     private MenuItem mToolBarSave;
@@ -96,13 +105,14 @@ public class DeviceDetailActivity extends AppCompatActivity {
     private MyHandler mHandler;
     private MyReceiver mReceiver;
     private LocalBroadcastManager mBroadcastManager;
+    private int mPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
 
-        ButterKnife.bind(this);
+        mUnBinder =  ButterKnife.bind(this);
         SDKInitializer.initialize(getApplicationContext());
 
         setSupportActionBar(mDeviceDetailToolBar);
@@ -110,7 +120,6 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
         mBaiduMap = mMapView.getMap();
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-
         initView();
 
     }
@@ -123,11 +132,12 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mReceiver = new MyReceiver();
         mBroadcastManager.registerReceiver(mReceiver, filter);
 
+
         //添加handler用于更新UI
         mHandler = new MyHandler(this);
 
-
         Bundle bundle = getIntent().getBundleExtra(LOCATIONDEVICE);
+        mPosition = getIntent().getIntExtra(DEVICEPOSITION, -1);
         mLocationDevice = (LocationDevice) bundle.getSerializable(LOCATIONDEVICE);
         if (mLocationDevice != null) {
             //设置设备信息回显
@@ -149,15 +159,12 @@ public class DeviceDetailActivity extends AppCompatActivity {
             //默认只能查看设备信息，不能编辑
             EditTextUtil.ISTOEDIT(false, mTvDeviceNumber, mMacEditText1, mMacEditText2,
                     mMacEditText3, mMacEditText4, mMacEditText5, mMacEditText6);
-
-
         }
 
         //是否从AcqDataFragment获取新的定位信息
         mBtRelocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 //先判断 主页面是否在定位中
                 if(SPUtil.getBoolean(DeviceDetailActivity.this,IsLocation,false)){
                     if(SPUtil.getBoolean(getApplicationContext(),
@@ -175,42 +182,43 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 }else {
                     ToastUtil.showShortToast(getApplicationContext(),"请在数据采集页面重新获取定位信息");
                 }
-
-
             }
         });
 
         //设置地图点
         LatLng ll = new LatLng(Double.parseDouble(mLocationDevice.mLatitude), Double.parseDouble(mLocationDevice.mLongitude));
+        // TODO: 2017/6/29  应该设置marker，而不是我的位置
         navigateTo(ll);
     }
 
-
     //用于更新定位数据的Handler的UI
     private static class MyHandler extends Handler {
-
-        WeakReference<DeviceDetailActivity> mDetailActivity;
-
-        MyHandler(DeviceDetailActivity deviceDetailActivity) {
-            mDetailActivity = new WeakReference<>(deviceDetailActivity);
+        WeakReference<DeviceDetailActivity> mActivity;
+        MyHandler(DeviceDetailActivity activity) {
+            mActivity = new WeakReference<>(activity);
         }
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            DeviceDetailActivity deviceDetailActivity = mDetailActivity.get();
-            if (deviceDetailActivity != null) {// 先判断弱引用是否为空，为空则不更新UI
+            DeviceDetailActivity activity = mActivity.get();
+            if (activity != null) {// 先判断弱引用是否为空，为空则不更新UI
                 int flag = msg.what;
                 //
                 if (flag == ON_RECEIVE_LOCATION_DATA) {
                     LogUtil.i(TAG, msg.obj.toString());
-                    boolean receiveData = SPUtil.getBoolean(deviceDetailActivity.getApplicationContext(),
+                    boolean receiveData = SPUtil.getBoolean(activity.getApplicationContext(),
                             ToSendLocation, false);
                     if (receiveData) {
                         LocationDevice locationDevice = (LocationDevice) msg.obj;
-                        deviceDetailActivity.mTvLatInfo.setText(locationDevice.mLatitude);
-                        deviceDetailActivity.mTvLngInfo.setText(locationDevice.mLongitude);
+                        activity.mTvLatInfo.setText(locationDevice.mLatitude);
+                        activity.mTvLngInfo.setText(locationDevice.mLongitude);
                     }
+                }
+                if(flag==ON_CONFIRM_DELETE){
+                    //发送删除单条设备的广播，让DeviceListFragment去删除
+                    MyLocalBroadcastManager.sendLocalBroadcast(activity,"DATA_CHANGED",DELETE_BY_ID,DEVICEPOSITION,
+                            activity.mPosition, "on_delete_device",activity.mLocationDevice);
+                    activity.finish();
                 }
             }
         }
@@ -311,14 +319,17 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 mLocationDevice.mLongitude = mTvLngInfo.getText().toString();
 
 
-                //发送DATA_CHANGED本地广播，用来更新DeviceListFragment中RecyclerView
+/*                //发送DATA_CHANGED本地广播，用来更新DeviceListFragment中RecyclerView
                 Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
                 intent.putExtra("flag", ON_EDIT_DEVICE);
-                intent.putExtra(DEVICEPOSITION, getIntent().getIntExtra(DEVICEPOSITION, -1)); //把设备position传回 DeviceListFragment中，用于更新UI
+                intent.putExtra(DEVICEPOSITION, mPosition); //把设备position传回 DeviceListFragment中，用于更新UI
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("on_edit_device", mLocationDevice);
                 intent.putExtra("on_edit_device", bundle);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);*/
+
+                MyLocalBroadcastManager.sendLocalBroadcast(this,"DATA_CHANGED",ON_EDIT_DEVICE,
+                        DEVICEPOSITION,mPosition,"on_edit_device", mLocationDevice);
 
                 ToastUtil.showShortToast(this, "成功保存修改");
                 //修改成功才改变UI
@@ -330,10 +341,11 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
                 //修改成功的同时，停止发送数据
                 SPUtil.getBoolean(getApplicationContext(), ToSendLocation, false);
-
                 return true;
+
             case R.id.device_detail_delete:
-                LogUtil.i(TAG, "设备删除按钮被点击");
+                DialogUtil.showConfirmDialog(this,mHandler,"删除设备","请确认删除该设备",ON_CONFIRM_DELETE);
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -347,6 +359,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mMapView.onDestroy();
         mBaiduMap.setMyLocationEnabled(true);
         mBroadcastManager.unregisterReceiver(mReceiver);
+        mUnBinder.unbind();
     }
 
     @Override

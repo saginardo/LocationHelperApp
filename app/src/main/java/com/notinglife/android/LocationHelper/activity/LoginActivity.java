@@ -37,6 +37,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.avos.avoscloud.AVException.EMAIL_NOT_FOUND;
 import static com.avos.avoscloud.AVException.USERNAME_PASSWORD_MISMATCH;
@@ -72,13 +73,13 @@ public class LoginActivity extends AppCompatActivity {
     @BindView(R.id.email_resend_button)
     Button mEmailResendButton;
     private Context mContext;
-
+    private Unbinder mUnBinder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
         mContext = getApplicationContext();
 
@@ -244,4 +245,9 @@ public class LoginActivity extends AppCompatActivity {
         AVAnalytics.onResume(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnBinder.unbind();
+    }
 }

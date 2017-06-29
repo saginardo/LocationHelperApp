@@ -14,6 +14,7 @@ import com.notinglife.android.LocationHelper.domain.LocationDevice;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * ${DESCRIPTION}
@@ -66,7 +67,7 @@ public class EditDeviceDialog extends Dialog {
     private String dialogTitle;
     private String message;
     private LocationDevice tmpDevice;
-
+    private Unbinder mUnBinder;
 
     //showdialog标志位
     private int mFlag;
@@ -76,6 +77,7 @@ public class EditDeviceDialog extends Dialog {
     private final static int ON_SAVE_DATA = 3; //触发保存数据的标志位
     private final static int UNDO_SAVE = 4;
     private final static int ON_RECEIVE_LOCATION_DATA = 5;
+
 
     public EditDeviceDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);
@@ -89,7 +91,7 @@ public class EditDeviceDialog extends Dialog {
         setContentView(R.layout.device_show_dialog);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
         //初始化界面控件
         initView();
@@ -204,4 +206,5 @@ public class EditDeviceDialog extends Dialog {
     public interface onNegativeOnclickListener {
         void onNegativeClick();
     }
+
 }

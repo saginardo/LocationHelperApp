@@ -14,6 +14,7 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * ${DESCRIPTION}
@@ -32,6 +33,7 @@ public class CaptureActivity extends AppCompatActivity {
 
     public static boolean isOpen = false;
     private static final String TAG = "CaptureActivity";
+    private Unbinder mUnBinder;
 
     //startActivityForResult 标志位
     private final static int REQUEST_QR_CODE = 1028;
@@ -45,7 +47,7 @@ public class CaptureActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
         // 为二维码扫描界面设置定制化界面
         CaptureFragment captureFragment = new CaptureFragment();
@@ -103,6 +105,12 @@ public class CaptureActivity extends AppCompatActivity {
         //super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnBinder.unbind();
+    }
+
     /**
      * 二维码解析回调函数
      */
@@ -115,6 +123,7 @@ public class CaptureActivity extends AppCompatActivity {
             bundle.putString(CodeUtils.RESULT_STRING, result);
             resultIntent.putExtras(bundle);
             CaptureActivity.this.setResult(RESULT_OK, resultIntent);
+
             CaptureActivity.this.finish();
         }
 
@@ -126,6 +135,7 @@ public class CaptureActivity extends AppCompatActivity {
             bundle.putString(CodeUtils.RESULT_STRING, ""); //解析失败，返回空串
             resultIntent.putExtras(bundle);
             CaptureActivity.this.setResult(RESULT_OK, resultIntent);
+
             CaptureActivity.this.finish();
         }
     };

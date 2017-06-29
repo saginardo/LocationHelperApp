@@ -41,12 +41,20 @@ public class DialogUtil {
     private final static int ON_EDIT_DEVICE = 7;
 
     private final static int ON_CONFIRM_LOGOUT = 21;
+    private final static int ON_CONFIRM_DELETE = 22;
 
     private final static int ON_EDIT_USER_EMAIL = 30;
     private final static int ON_CHANGE_USER_PASSWORD = 31;
 
 
-    private final static int LOCATION_BACKGROUND_TIME = 40;
+    //修改设置的广播的标志位
+    private final static int LOCATION_MODE = 40;
+    private final static int LOCATION_TIME = 41;
+    //SPUtil用的key
+    private final static String LocationMode = "LocationMode";
+    private final static String LocationTime = "LocationTime";
+
+
     /**
      * 展示统一风格的对话框，其中包含对话框UI中的数据更新和不同对话框UI的替换
      *
@@ -84,16 +92,16 @@ public class DialogUtil {
                     handler.sendMessage(msg);
 
                 }
-                if (flag ==UPDATE_DEVICE) {
+                if (flag == UPDATE_DEVICE) {
                     msg.what = flag;
-                    msg.obj =  mEditDeviceDialog.getDeviceInfo();
+                    msg.obj = mEditDeviceDialog.getDeviceInfo();
                     msg.arg1 = position;
                     handler.sendMessage(msg);
                 }
 
-                if(flag == DELETE_BY_ID || flag == UNDO_SAVE){
+                if (flag == DELETE_BY_ID || flag == UNDO_SAVE) {
                     msg.what = flag;
-                    msg.obj =  locationDevice;
+                    msg.obj = locationDevice;
                     msg.arg1 = position;
                     handler.sendMessage(msg);
                 }
@@ -112,7 +120,7 @@ public class DialogUtil {
         mEditDeviceDialog.show();
     }
 
-    public static void showConfirmDialog(Activity activity, final Handler handler, String title, String message) {
+    public static void showConfirmDialog(Activity activity, final Handler handler, String title, String message, final int flag) {
 
         final EditDeviceDialog mEditDeviceDialog = new EditDeviceDialog(activity, title, message);
 
@@ -130,9 +138,17 @@ public class DialogUtil {
             @Override
             public void onPositiveClick() {
                 Message msg = Message.obtain();
-                msg.what = ON_CONFIRM_LOGOUT;
-                msg.obj = true;
-                handler.sendMessage(msg);
+                if(flag==ON_CONFIRM_LOGOUT){
+                    msg.what = ON_CONFIRM_LOGOUT;
+                    msg.obj = true;
+                    handler.sendMessage(msg);
+                }
+                if(flag==ON_CONFIRM_DELETE){
+                    msg.what = ON_CONFIRM_DELETE;
+                    msg.obj = true;
+                    handler.sendMessage(msg);
+                }
+
                 mEditDeviceDialog.dismiss();
             }
         });
@@ -150,12 +166,13 @@ public class DialogUtil {
 
     /**
      * 修改用户信息的对话框
+     *
      * @param activity 对话框所在的activity
-     * @param handler 用于更新的handler
-     * @param title 设置对话框标题
-     * @param message 设置对话框显示信息
-     * @param user 待修改的用户类
-     * @param flag 修改用户信息的标志位
+     * @param handler  用于更新的handler
+     * @param title    设置对话框标题
+     * @param message  设置对话框显示信息
+     * @param user     待修改的用户类
+     * @param flag     修改用户信息的标志位
      */
     public static void showUserEditDialog(final Activity activity, final Handler handler, String title, String message, final User user, final int flag) {
 
@@ -179,18 +196,18 @@ public class DialogUtil {
                 Message msg = Message.obtain();
                 msg.what = flag;
 
-                if(flag==ON_EDIT_USER_EMAIL){
+                if (flag == ON_EDIT_USER_EMAIL) {
                     msg.obj = mEditUserDialog.getUserInfo();//重新获取的新的输入框数据
-                    if(msg.obj==null){
-                        ToastUtil.showShortToast(activity,"请检查两次输入邮箱是否一致");
-                    }else {
+                    if (msg.obj == null) {
+                        ToastUtil.showShortToast(activity, "请检查两次输入邮箱是否一致");
+                    } else {
                         //两次输入邮箱一致，则发送msg
                         handler.sendMessage(msg);
                         mEditUserDialog.dismiss();
                     }
                 }
-                if(flag==ON_CHANGE_USER_PASSWORD){
-                    msg.obj =user;
+                if (flag == ON_CHANGE_USER_PASSWORD) {
+                    msg.obj = user;
                     handler.sendMessage(msg);
                     mEditUserDialog.dismiss();
                 }
@@ -211,6 +228,7 @@ public class DialogUtil {
 
     /**
      * 搜索对话框
+     *
      * @param activity
      */
     public static void showSearchDialog(Activity activity) {
@@ -244,9 +262,9 @@ public class DialogUtil {
     }
 
 
-    public static void showChoiceDialog(final Activity activity, final Handler handler, String title,int flag, String... strings) {
+    public static void showChoiceDialog(final Activity activity, final Handler handler, String title, final int flag, String... strings) {
 
-        final ChoiceDialog mChoiceDialog = new ChoiceDialog(activity,title, strings);
+        final ChoiceDialog mChoiceDialog = new ChoiceDialog(activity, title, strings);
         mChoiceDialog.setFlag(flag);
 
         //自定义窗体参数
@@ -264,12 +282,23 @@ public class DialogUtil {
             @Override
             public void onPositiveClick() {
 
-                    String checkButton = mChoiceDialog.getCheckButtonName();
-                    //LogUtil.i(TAG,"选择的按钮是："+checkButton.getText());
-                    Message message = Message.obtain();
-                    message.what = LOCATION_BACKGROUND_TIME;
-                    message.obj = checkButton;
-                    handler.sendMessage(message);
+                String checkButton = mChoiceDialog.getCheckButtonName();
+                //LogUtil.i(TAG,"选择的按钮是："+checkButton.getText());
+                Message message = Message.obtain();
+                //确认选项后，才写入SP中
+                switch (flag){
+                    case LOCATION_MODE:
+                        message.what = flag;
+                        message.obj = checkButton;
+                        SPUtil.setString(activity.getApplicationContext(),LocationMode,checkButton);
+                        break;
+                    case LOCATION_TIME:
+                        message.what = flag;
+                        message.obj = checkButton;
+                        SPUtil.setString(activity.getApplicationContext(),LocationTime,checkButton);
+                }
+                handler.sendMessage(message);
+
                 mChoiceDialog.dismiss();
             }
         });

@@ -70,7 +70,7 @@ public class MineFragment extends Fragment {
 
     private Activity mActivity;
     private MyHandler mHandler;
-    private Unbinder mUnbinder;
+    private Unbinder mUnBinder;
     private static final String TAG = "MineFragment";
 
     //登录登出标志位
@@ -92,7 +92,7 @@ public class MineFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = View.inflate(mActivity, R.layout.fragment_mine, null);
-        mUnbinder = ButterKnife.bind(this, view);
+        mUnBinder = ButterKnife.bind(this, view);
 
         if (AVUser.getCurrentUser() != null) {
             //LogUtil.i(TAG, AVUser.getCurrentUser().toString());
@@ -170,10 +170,8 @@ public class MineFragment extends Fragment {
                         break;
 
                     case R.id.menu_logout:
-
-                        DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？");
+                        DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？",ON_CONFIRM_LOGOUT);
                         break;
-
                     case R.id.settings:
                         startActivity(new Intent(mActivity, SettingsActivity.class));
                         break;
@@ -187,7 +185,7 @@ public class MineFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mBroadcastManager.unregisterReceiver(mReceiver);
-        mUnbinder.unbind();
+        mUnBinder.unbind();
     }
 
     @Override

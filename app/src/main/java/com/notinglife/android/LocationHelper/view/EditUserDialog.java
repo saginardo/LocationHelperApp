@@ -14,6 +14,7 @@ import com.notinglife.android.LocationHelper.domain.User;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 import static com.notinglife.android.LocationHelper.R.id.tv_user_email_info_repeat;
 
@@ -60,7 +61,7 @@ public class EditUserDialog extends Dialog {
 
     private String dialogTitle;
     private String message;
-
+    private Unbinder mUnBinder;
     //用于支持显示用户修改页面的对话框
     private User mUser;
 
@@ -91,7 +92,7 @@ public class EditUserDialog extends Dialog {
         setContentView(R.layout.user_show_dialog);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
         //初始化界面控件
         initView();
@@ -108,6 +109,7 @@ public class EditUserDialog extends Dialog {
     private void initData() {
 
     }
+
 
     private void initView() {
 

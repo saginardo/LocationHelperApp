@@ -175,6 +175,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
         //动态注册本地广播，以便通知设备的添加和删除，可以及时更新recyclerview
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
@@ -182,6 +183,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         filter.addAction("com.notinglife.android.action.UNDO_SAVE"); //AcqDataFragment 发送的撤销更改的广播
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
+
         mHandler = new MyHandler(DeviceListFragment.this);
 
         mDeviceListToolBar.setTitle("设备列表");
@@ -311,6 +313,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     fragment.mList.clear();
                     fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
+
 
             }
         }
@@ -472,6 +475,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    // FIXME: 2017/6/29 重构
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -502,20 +506,29 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
             }
             //设备详情 DeviceDetailActivity 发送的广播
             if (flag == ON_EDIT_DEVICE) {
-                int intExtra = intent.getIntExtra(DEVICEPOSITION, -1);
+                int position = intent.getIntExtra(DEVICEPOSITION, -1);
                 Bundle on_save_data = intent.getBundleExtra("on_edit_device");
                 LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("on_edit_device");
 
                 Message message = Message.obtain();
                 message.what = ON_EDIT_DEVICE;
                 message.obj = tmpDevice;
-                message.arg1 = intExtra;
+                message.arg1 = position;
                 //LogUtil.i(TAG,"消息标志位 "+ message.what +" , 消息对象 "+message.obj+" , 消息位置"+intExtra);
                 mHandler.sendMessage(message);
             }
             if(flag== ON_DELETE_ALL_DATA){
                 Message message = Message.obtain();
                 message.what = ON_DELETE_ALL_DATA;
+                mHandler.sendMessage(message);
+            }
+            if(flag==DELETE_BY_ID){
+                Bundle on_delete_device = intent.getBundleExtra("on_delete_device");
+                LocationDevice tmpDevice = (LocationDevice) on_delete_device.getSerializable("on_delete_device");
+                Message message = Message.obtain();
+                message.what = DELETE_BY_ID;
+                message.arg1 = intent.getIntExtra(DEVICEPOSITION,-1);//设备位置
+                message.obj = tmpDevice;
                 mHandler.sendMessage(message);
             }
 

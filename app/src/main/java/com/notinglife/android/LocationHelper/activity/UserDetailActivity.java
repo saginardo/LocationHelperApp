@@ -34,6 +34,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class UserDetailActivity extends AppCompatActivity {
 
@@ -64,13 +65,14 @@ public class UserDetailActivity extends AppCompatActivity {
 
     private Activity mActivity;
     private MyHandler mHandler;
+    private Unbinder mUnBinder;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_detail);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
         mActivity = this;
         mHandler = new MyHandler(this);
 
@@ -212,5 +214,11 @@ public class UserDetailActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnBinder.unbind();
     }
 }

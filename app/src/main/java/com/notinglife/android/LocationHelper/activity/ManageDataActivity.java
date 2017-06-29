@@ -1,10 +1,8 @@
 package com.notinglife.android.LocationHelper.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -15,11 +13,13 @@ import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.utils.FileUtil;
+import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
 
 import java.lang.ref.WeakReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class ManageDataActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -40,6 +40,7 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
 
     private static final String TAG = "ManageDataActivity";
     private MyHandler mHandler;
+    private Unbinder mUnBinder;
 
     private final static int ON_DELETE_ALL_DATA = 8;
 
@@ -47,7 +48,7 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_data);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
         mHandler = new MyHandler(this);
 
         setSupportActionBar(mManageDataToolBar);
@@ -89,9 +90,8 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
                 break;
             case R.id.delete_all_data:
                 FileUtil.deleteFromLocal(this);
-                Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
-                intent.putExtra("flag", ON_DELETE_ALL_DATA);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                MyLocalBroadcastManager.sendLocalBroadcast(this,"DATA_CHANGED",ON_DELETE_ALL_DATA,
+                        null,-1,null,null);
                 break;
             default:
                 break;
@@ -99,17 +99,12 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
     }
 
 
-
-
     //用于更新mainActivity的UI
     private static class MyHandler extends Handler {
-
         WeakReference<ManageDataActivity> mActivity;
-
         MyHandler(ManageDataActivity activity) {
             mActivity = new WeakReference<>(activity);
         }
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -122,5 +117,9 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
         }
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnBinder.unbind();
+    }
 }

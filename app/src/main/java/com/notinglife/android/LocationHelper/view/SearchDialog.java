@@ -29,6 +29,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * ${DESCRIPTION}
@@ -49,6 +50,7 @@ public class SearchDialog extends Dialog {
     private List<String> mDeviceIds;
     private ArrayAdapter<String> mArrayAdapter;
     private LocationDevice mLocationDevice;
+    private Unbinder mUnBinder;
 
     @BindView(R.id.tv_backspace)
     TextView mTextView;
@@ -77,7 +79,7 @@ public class SearchDialog extends Dialog {
         this.setContentView(customView);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(true);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
         //初始化界面控件
         initView();
@@ -87,6 +89,7 @@ public class SearchDialog extends Dialog {
         initEvent();
 
     }
+
 
     @Override
     public View findViewById(int id) {

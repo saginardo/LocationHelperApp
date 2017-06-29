@@ -57,13 +57,13 @@ public class RegisterActivity extends AppCompatActivity {
     EditText mEmailAddress2;
 
     private static final String TAG = "RegisterActivity";
-    Unbinder mUnbinder;
+    Unbinder mUnBinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-        mUnbinder = ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
 
 
         setSupportActionBar(mToolBar);
@@ -234,6 +234,6 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mUnbinder.unbind();
+        mUnBinder.unbind();
     }
 }

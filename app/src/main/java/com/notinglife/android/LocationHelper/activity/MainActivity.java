@@ -35,6 +35,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private MyHandler mHandler;
     private LocalBroadcastManager mBroadcastManager;
     private MyReceiver mReceiver;
+    private Unbinder mUnBinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mActivity = this;
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
         initPermission();
         initView();
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         mBroadcastManager.unregisterReceiver(mReceiver);
+        mUnBinder.unbind();
     }
 
     private void initView() {
@@ -199,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
                     }
-                    //initLocation();
                 } else {
                     finish();
                 }
@@ -220,10 +222,9 @@ public class MainActivity extends AppCompatActivity {
                 AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
                 item.onActivityResult(requestCode, resultCode, data);
             }
-
             if(resultCode == SCAN_RESULT_FROM_TOOLBAR){
                 AcqDataFragment item = (AcqDataFragment)mFragmentPagerAdapter.getItem(0);
-                item.setIntentData(data);
+                item.setQRCodeData(data);
             }
         }
 
@@ -231,17 +232,15 @@ public class MainActivity extends AppCompatActivity {
 
     //用于更新mainActivity的UI
     private static class MyHandler extends Handler {
-
-        WeakReference<MainActivity> mMainActivity;
-        MyHandler(MainActivity mainActivity) {
-            mMainActivity = new WeakReference<>(mainActivity);
+        WeakReference<MainActivity> mActivity;
+        MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
         }
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            MainActivity mainActivity = mMainActivity.get();
-            if (mainActivity != null) {// 先判断弱引用是否为空，为空则不更新UI
+            MainActivity activity = mActivity.get();
+            if (activity != null) {// 先判断弱引用是否为空，为空则不更新UI
                 int flag = msg.what;
                 //接收注销本地广播，更新UI等逻辑
                 if (flag == ON_LOGOUT) {

@@ -1,5 +1,6 @@
 package com.notinglife.android.LocationHelper.activity;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,11 +13,14 @@ import android.widget.TextView;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
+import com.notinglife.android.LocationHelper.utils.SPUtil;
 
 import java.lang.ref.WeakReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -29,15 +33,26 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
 
     private MyHandler mHandler;
-    private final static int LOCATION_BACKGROUND_TIME = 40;
-    private final static int LOCATION_MODE = 41;
+
+    //修改设置的广播的标志位
+    private final static int LOCATION_MODE = 40;
+    private final static int LOCATION_TIME = 41;
+
     private static final String TAG = "SettingsActivity";
+    //SpUtil用的key
+    private static final String IsLocation = "IsLocation";
+    private static final String ToSendLocation = "ToSendLocation";
+    private final static String LocationMode = "LocationMode";
+    private final static String LocationTime = "LocationTime";
+    private Unbinder mUnBinder;
+    private Activity mActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        ButterKnife.bind(this);
+        mUnBinder = ButterKnife.bind(this);
+        mActivity = this;
 
         setSupportActionBar(mSystemSettingToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -50,7 +65,6 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
 
     private static class MyHandler extends Handler {
-
         WeakReference<SettingsActivity> mActivity;
         MyHandler(SettingsActivity activity) {
             mActivity = new WeakReference<>(activity);
@@ -61,9 +75,24 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             final SettingsActivity activity = mActivity.get();
             if (activity != null) {// 先判断弱引用是否为空，为空则不更新UI
                 int flag = msg.what;
-                if(flag==LOCATION_BACKGROUND_TIME){
-                    String location_background_time = (String) msg.obj;
-                    LogUtil.i(TAG,"选择的按钮是："+location_background_time);
+                if (flag == LOCATION_MODE) {
+                    String location_mode = (String) msg.obj;
+                    LogUtil.i(TAG, "选择的按钮是：" + location_mode);
+                    //只有用户正在定位时候，发送广播，让主页面重新定位
+                    if (SPUtil.getBoolean(activity.getApplicationContext(), IsLocation, false)) {
+                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity,"ON_CHANGE_LOCATION_CHOICE",LOCATION_MODE,
+                                null,-1,null,null);
+                    }
+                }
+
+                if (flag == LOCATION_TIME) {
+                    String location_time = (String) msg.obj;
+                    LogUtil.i(TAG, "选择的按钮是：" + location_time);
+                    //只有用户正在定位时候，发送广播，让主页面重新定位
+                    if (SPUtil.getBoolean(activity.getApplicationContext(), IsLocation, false)) {
+                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity,"ON_CHANGE_LOCATION_CHOICE",LOCATION_TIME,
+                                null,-1,null,null);
+                    }
                 }
             }
         }
@@ -74,10 +103,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.primary_location_mode:
-                DialogUtil.showChoiceDialog(this, mHandler, "请选择定位模式", LOCATION_MODE, "混合模式","仅使用GPS","仅使用网络");
+                DialogUtil.showChoiceDialog(this, mHandler, "请选择定位模式", LOCATION_MODE, "混合模式", "仅使用GPS", "仅使用网络");
                 break;
             case R.id.location_time:
-                DialogUtil.showChoiceDialog(this, mHandler, "请选择后台定位时长",LOCATION_BACKGROUND_TIME, "60秒","120秒","300秒","无限制");
+                DialogUtil.showChoiceDialog(this, mHandler, "请选择后台定位时长", LOCATION_TIME, "60秒", "120秒", "300秒", "无限制");
                 break;
             default:
                 break;
@@ -86,11 +115,17 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mUnBinder.unbind();
     }
 }

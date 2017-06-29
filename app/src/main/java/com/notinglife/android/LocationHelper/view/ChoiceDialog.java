@@ -19,6 +19,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * ${DESCRIPTION}
@@ -54,8 +55,9 @@ public class ChoiceDialog extends Dialog {
 
 
     private static final String TAG = "ChoiceDialog";
-    private final static int LOCATION_BACKGROUND_TIME = 40;
-    private final static int LOCATION_MODE = 41;
+    //修改设置的广播的标志位
+    private final static int LOCATION_MODE = 40;
+    private final static int LOCATION_TIME = 41;
 
     //SPUtil用的key
     private final static String LocationMode = "LocationMode";
@@ -64,6 +66,8 @@ public class ChoiceDialog extends Dialog {
     private int mFlag;
     private String[] mChoices;
     private List<RadioButton> mRadioButtonList;
+    private Unbinder mUnBinder;
+    private String mCheckButtonName;
 
 
     public ChoiceDialog(Context context, String title, String... strings) {
@@ -79,8 +83,7 @@ public class ChoiceDialog extends Dialog {
 
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
-        ButterKnife.bind(this);
-
+        mUnBinder = ButterKnife.bind(this);
 
         //初始化界面数据
         initData();
@@ -116,7 +119,7 @@ public class ChoiceDialog extends Dialog {
             }
         }
 
-        if (mFlag == LOCATION_BACKGROUND_TIME) {
+        if (mFlag == LOCATION_TIME) {
             //标志位为 Locationtime，说明是选择定位时长
             //标志位为 LOCATION_MODE,说明是选择定位模式
             for (int i = 0; i < mChoices.length; i++) {
@@ -153,7 +156,7 @@ public class ChoiceDialog extends Dialog {
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radio_group);
         if (mFlag == LOCATION_MODE) {
-            switch (SPUtil.getString(getContext(), LocationMode, mChoices[0])) {
+            switch (SPUtil.getString(getContext(), LocationMode, "混合模式")) {
                 case "混合模式":
                     radioGroup.check(R.id.radioButton1);
                     break;
@@ -167,8 +170,8 @@ public class ChoiceDialog extends Dialog {
                     break;
             }
         }
-        if (mFlag == LOCATION_BACKGROUND_TIME) {
-            switch (SPUtil.getString(getContext(), LocationTime, mChoices[0])) {
+        if (mFlag == LOCATION_TIME) {
+            switch (SPUtil.getString(getContext(), LocationTime,"60秒")) {
                 case "60秒":
                     radioGroup.check(R.id.radioButton1);
                     break;
@@ -231,21 +234,21 @@ public class ChoiceDialog extends Dialog {
 
 
     public void setCheckButtonName(String checkButtonName) {
-        if (mFlag == LOCATION_MODE) {
-            SPUtil.setString(getContext(), LocationMode, checkButtonName);
-        }
-        if (mFlag == LOCATION_BACKGROUND_TIME) {
-            SPUtil.setString(getContext(), LocationTime, checkButtonName);
-        }
+        mCheckButtonName = checkButtonName;
     }
 
     public String getCheckButtonName() {
-        if (mFlag == LOCATION_MODE) {
-            return SPUtil.getString(getContext(), LocationMode, mChoices[0]);
+        //当用户什么都不选择，直接按确定，此时 mCheckButtonName为空
+        if(mCheckButtonName==null){
+            if(mFlag==LOCATION_TIME){
+               return SPUtil.getString(getContext(), LocationTime,"60秒");
+            }
+            if(mFlag==LOCATION_MODE){
+                return SPUtil.getString(getContext(), LocationMode, "混合模式");
+            }
         }
-        if (mFlag == LOCATION_BACKGROUND_TIME) {
-            return SPUtil.getString(getContext(), LocationTime, mChoices[0]);
-        }
-        return null;
+        return mCheckButtonName;
     }
+
+
 }

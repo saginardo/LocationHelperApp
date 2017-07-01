@@ -46,6 +46,7 @@
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
+                    android:layout_gravity="center_vertical"
                     android:text="设备编号: "
                     android:textColor="@color/colorLitleBlack"
                     android:textSize="18sp"/>
@@ -54,13 +55,36 @@
                     android:id="@+id/tv_device_number"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:hint="*****"
                     android:maxLength="5"
                     android:maxLines="1"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
+
+                <TextView
+                    android:id="@+id/tv_device_status"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_gravity="center_vertical"
+                    android:text="设备状态: "
+                    android:textColor="@color/colorLitleBlack"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tv_device_status_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="10dp"
+                    android:text="正常"
+                    android:maxLength="5"
+                    android:maxLines="1"
+                    android:textColor="@color/colorLitleBlack"
+                    android:textSize="18sp"/>
 
 
             </LinearLayout>
@@ -73,7 +97,7 @@
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
             android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical"
             app:cardCornerRadius="5dp"
             app:cardElevation="5dp">
 
@@ -95,12 +119,12 @@
                     android:id="@+id/macEditText1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:layout_marginStart="10dp"
                     android:hint="**"
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
 
                 <EditText
                     android:id="@+id/macEditText2"
@@ -110,7 +134,7 @@
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
 
                 <EditText
                     android:id="@+id/macEditText3"
@@ -120,7 +144,7 @@
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
 
                 <EditText
                     android:id="@+id/macEditText4"
@@ -130,7 +154,7 @@
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
 
                 <EditText
                     android:id="@+id/macEditText5"
@@ -140,7 +164,7 @@
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
 
                 <EditText
                     android:id="@+id/macEditText6"
@@ -150,7 +174,7 @@
                     android:maxLength="2"
                     android:maxLines="1"
                     android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
+                    android:textSize="17sp"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>
 
@@ -209,14 +233,14 @@
                     android:textColor="@color/colorLitleBlack"
                     android:layout_marginEnd="10dp"
                     android:textSize="16sp"/>
-                <TextView
+                <Button
                     android:id="@+id/bt_relocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end|center_vertical"
                     android:background="#FFFFFF"
                     android:visibility="gone"
-                    android:drawableEnd="@mipmap/ic_action_location_2"/>
+                    android:drawableEnd="@drawable/device_relocation_selector"/>
 
             </LinearLayout>
 

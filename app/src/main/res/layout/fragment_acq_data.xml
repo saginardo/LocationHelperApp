@@ -180,7 +180,6 @@
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:gravity="start"
-                    android:text="**.******"
                     android:textSize="18sp"/>
 
 
@@ -196,7 +195,6 @@
                     android:id="@+id/tv_lng_info"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
-                    android:text="**.******"
                     android:textSize="18sp"/>
 
             </LinearLayout>
@@ -234,8 +232,6 @@
                     android:id="@+id/tv_loc_mode_value"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
-                    android:paddingStart="5dp"
-                    android:text="未知"
                     android:textSize="18sp"/>
 
                 <TextView
@@ -250,7 +246,6 @@
                     android:id="@+id/tv_loc_radius_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="***.*米"
                     android:textSize="18sp"/>
             </LinearLayout>
         </android.support.v7.widget.CardView>

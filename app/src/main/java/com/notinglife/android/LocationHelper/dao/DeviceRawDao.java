@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
-import com.notinglife.android.LocationHelper.utils.MySqliteOpenHelper;
+import com.notinglife.android.LocationHelper.utils.RegexValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +40,9 @@ public class DeviceRawDao {
         values.put("macAddress", bean.mMacAddress);
         values.put("latitude", bean.mLatitude);
         values.put("longitude", bean.mLongitude);
+        values.put("owner", bean.mOwner);
+        values.put("deviceStatus", bean.mStatus);
+
 
         //table: 表名, nullColumnHack：可以为空，标示添加一个空行,
         //       values:数据一行的值
@@ -106,6 +109,8 @@ public class DeviceRawDao {
         values.put("macAddress", bean.mMacAddress);
         values.put("latitude", bean.mLatitude);
         values.put("longitude", bean.mLongitude);
+        values.put("owner", bean.mOwner);
+        values.put("deviceStatus", bean.mStatus);
 
         //table:表名, values：更新的值, whereClause:更新的条件, whereArgs：更新条件的占位符的值,
         // 返回值：成功修改多少行
@@ -113,11 +118,49 @@ public class DeviceRawDao {
         //关闭数据库对象
         db.close();
         return result;
-
     }
 
-    public LocationDevice queryById(String deviceId) {
+    //返回值：成功修改多少行，修改单个设备的状态
+    public int updateDeviceStatus(String ID,String status) {
+        //执行sql语句需要sqliteDatabase对象
+        //调用getReadableDatabase方法,来初始化数据库的创建
+        SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
+        ContentValues values = new ContentValues();//是用map封装的对象，用来存放值
+        values.put("deviceStatus", status);
+        //table:表名, values：更新的值, whereClause:更新的条件, whereArgs：更新条件的占位符的值,
+        // 返回值：成功修改多少行
+        int result =  db.update("devices", values, "deviceId = ?", new String[]{ID});
+        //关闭数据库对象
+        db.close();
+        return result;
+    }
 
+
+    //返回值：成功修改多少行 修改多个设备的状态
+    public int updateDevicesStatus(List<String> IDs, String status) {
+        //执行sql语句需要sqliteDatabase对象
+        //调用getReadableDatabase方法,来初始化数据库的创建
+        SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
+        ContentValues values = new ContentValues();//是用map封装的对象，用来存放值
+        values.put("deviceStatus", status);
+
+        // 返回值：成功修改多少行
+        int count = 0;
+        for (String ID : IDs) {
+            if (RegexValidator.isDeviceID(ID)) {
+                //table:表名, values：更新的值, whereClause:更新的条件, whereArgs：更新条件的占位符的值,
+                int result = db.update("devices", values, "deviceId = ?", new String[]{ID});
+                count += result;
+            }
+        }
+        //关闭数据库对象
+        db.close();
+        return count;
+    }
+
+
+
+    public LocationDevice queryById(String deviceId) {
         LocationDevice bean = new LocationDevice();
         SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
 
@@ -138,6 +181,8 @@ public class DeviceRawDao {
                 bean.mMacAddress = cursor.getString(2);
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
                 //LogUtil.i("查询到的设备：" + bean.mDeiviceId + " " + bean.mMacAddress + "" + bean.mLatitude + " " + bean.mLongitude);
             }
             cursor.close();//关闭结果集
@@ -171,6 +216,8 @@ public class DeviceRawDao {
                 bean.mMacAddress = cursor.getString(2);
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
                 //LogUtil.i(TAG,"查询到的设备：" + bean.mDeviceID + " " + bean.mMacAddress + "" + bean.mLatitude + " " + bean.mLongitude);
             }
             cursor.close();//关闭结果集
@@ -206,6 +253,8 @@ public class DeviceRawDao {
                 bean.mMacAddress = cursor.getString(2);
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
                 beans.add(bean);
                 //LogUtil.i(TAG,"查询到的设备：" + bean.mDeviceID + " " + bean.mMacAddress + "" + bean.mLatitude + " " + bean.mLongitude);
             }
@@ -242,6 +291,8 @@ public class DeviceRawDao {
                 bean.mMacAddress = cursor.getString(2);
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
             }
             cursor.close();//关闭结果集
             //关闭数据库对象
@@ -277,6 +328,44 @@ public class DeviceRawDao {
                 bean.mMacAddress = cursor.getString(2);
                 bean.mLatitude = cursor.getString(3);
                 bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
+                list.add(bean);
+            }
+            cursor.close();//关闭结果集
+            //关闭数据库对象
+            db.close();
+            return list;
+        }
+        //关闭数据库对象
+        db.close();
+        return null;
+    }
+    public List<LocationDevice> queryByStatus(String status) {
+        List<LocationDevice> list = new ArrayList<>();
+        SQLiteDatabase db = mySqliteOpenHelper.getReadableDatabase();
+
+        //table:表名,
+        // columns：查询的列名,如果null代表查询所有列；
+        // selection:查询条件, selectionArgs：条件占位符的参数值,
+        // groupBy:按什么字段分组, having:分组的条件, orderBy:按什么字段排序
+//        Cursor cursor = db.query("devices", new String[]{"deviceId", "macAddress", "latitude", "longitude"},
+//                null, null, null, null, "deviceId asc");
+        Cursor cursor = db.query("devices", null,
+                "deviceStatus=?", new String[]{status}, null, null, "deviceId asc");
+        if (cursor != null && cursor.getCount() > 0) {//判断cursor中是否存在数据
+
+            while (cursor.moveToNext()) {//条件，游标能否定位到下一行
+                // FIXED: 2017/6/10  每一次都是新的bean，不然会串行,始终添加最新的数据
+                LocationDevice bean = new LocationDevice();
+                //获取数据
+                bean.mID = cursor.getInt(0);
+                bean.mDeviceID = cursor.getString(1);
+                bean.mMacAddress = cursor.getString(2);
+                bean.mLatitude = cursor.getString(3);
+                bean.mLongitude = cursor.getString(4);
+                bean.mOwner = cursor.getString(5);
+                bean.mStatus = cursor.getString(6);
                 list.add(bean);
             }
             cursor.close();//关闭结果集

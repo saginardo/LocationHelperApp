@@ -22,6 +22,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
+import static com.baidu.mapapi.BMapManager.getContext;
+
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
     @BindView(R.id.system_setting_toolBar)
@@ -66,9 +68,11 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     private static class MyHandler extends Handler {
         WeakReference<SettingsActivity> mActivity;
+
         MyHandler(SettingsActivity activity) {
             mActivity = new WeakReference<>(activity);
         }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -80,8 +84,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                     LogUtil.i(TAG, "选择的按钮是：" + location_mode);
                     //只有用户正在定位时候，发送广播，让主页面重新定位
                     if (SPUtil.getBoolean(activity.getApplicationContext(), IsLocation, false)) {
-                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity,"ON_CHANGE_LOCATION_CHOICE",LOCATION_MODE,
-                                null,-1,null,null);
+                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity, "ON_CHANGE_LOCATION_CHOICE", LOCATION_MODE,
+                                null, -1, null, null);
                     }
                 }
 
@@ -90,8 +94,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                     LogUtil.i(TAG, "选择的按钮是：" + location_time);
                     //只有用户正在定位时候，发送广播，让主页面重新定位
                     if (SPUtil.getBoolean(activity.getApplicationContext(), IsLocation, false)) {
-                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity,"ON_CHANGE_LOCATION_CHOICE",LOCATION_TIME,
-                                null,-1,null,null);
+                        MyLocalBroadcastManager.sendLocalBroadcast(activity.mActivity, "ON_CHANGE_LOCATION_CHOICE", LOCATION_TIME,
+                                null, -1, null, null);
                     }
                 }
             }
@@ -101,12 +105,15 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onClick(View v) {
+        String defaultCheck;
         switch (v.getId()) {
             case R.id.primary_location_mode:
-                DialogUtil.showChoiceDialog(this, mHandler, "请选择定位模式", LOCATION_MODE, "混合模式", "仅使用GPS", "仅使用网络");
+                defaultCheck = SPUtil.getString(getContext(), LocationMode, "混合模式");
+                DialogUtil.showChoiceDialog(this, mHandler, "请选择定位模式", defaultCheck, LOCATION_MODE, "混合模式", "仅使用GPS", "仅使用网络");
                 break;
             case R.id.location_time:
-                DialogUtil.showChoiceDialog(this, mHandler, "请选择后台定位时长", LOCATION_TIME, "60秒", "120秒", "300秒", "无限制");
+                defaultCheck = SPUtil.getString(getContext(), LocationTime, "60秒");
+                DialogUtil.showChoiceDialog(this, mHandler, "请选择后台定位时长", defaultCheck, LOCATION_TIME, "60秒", "120秒", "300秒", "无限制");
                 break;
             default:
                 break;

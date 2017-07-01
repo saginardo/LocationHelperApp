@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVUser;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
@@ -45,6 +46,8 @@ import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
 
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -232,7 +235,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         super.onDestroy();
         mLocationClient.stop();
         broadcastManager.unregisterReceiver(mReceiver);
-        LogUtil.i(TAG, "onDestroy方法调用了");
         if (mTimer != null) {
             mTimer.cancel();
             mTimer = null;
@@ -263,15 +265,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         LocationDevice tmpDevice = (LocationDevice) msg.obj;
                         if (tmpDevice != null) {
                             //还需要通知 recyclerview 删除对应元素
-/*                            Intent intent = new Intent("com.notinglife.android.action.UNDO_SAVE");
-                            intent.putExtra("flag", UNDO_SAVE);
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable("undo_save_device", tmpDevice);
-                            intent.putExtra("undo_save_device", bundle);
-                            LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);*/
-
-                            MyLocalBroadcastManager.sendLocalBroadcast(fragment.mActivity,"UNDO_SAVE",UNDO_SAVE,
-                                    null,-1,"undo_save_device",tmpDevice);
+                            MyLocalBroadcastManager.sendLocalBroadcast(fragment.mActivity, "DATA_CHANGED", UNDO_SAVE,
+                                    null, -1, "DEVICE_DATA", tmpDevice);
                             ToastUtil.showShortToast(fragment.mActivity, "成功撤销上一次保存");
                         }
                         break;
@@ -288,19 +283,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                             } else {
                                 fragment.mLocMode.setText("网络定位");
                             }
-                            //通过读取配置，确定是否发送定位信息
+                            //通过读取配置，确定是否发送定位信息 至 DeviceDetailActivity
                             boolean sendData = SPUtil.getBoolean(fragment.mActivity, ToSendLocation, false);
-                            //LogUtil.i(TAG, "是否发送数据 : " + (sendData ? "是的" : "不是"));
                             if (sendData) {
-               /*                 Intent intent = new Intent("com.notinglife.android.action.ON_RECEIVE_LOCATION_DATA");
-                                intent.putExtra("flag", ON_RECEIVE_LOCATION_DATA);
-                                Bundle bundle = new Bundle();
-                                bundle.putSerializable("ON_RECEIVE_LOCATION_DATA", tmpDevice2);
-                                intent.putExtra("ON_RECEIVE_LOCATION_DATA", bundle);
-                                LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(intent);*/
-
-                                MyLocalBroadcastManager.sendLocalBroadcast(fragment.mActivity,"ON_RECEIVE_LOCATION_DATA",ON_RECEIVE_LOCATION_DATA,
-                                        null,-1,"ON_RECEIVE_LOCATION_DATA",tmpDevice2);
+                                MyLocalBroadcastManager.sendLocalBroadcast(fragment.mActivity, "ON_RECEIVE_LOCATION_DATA", ON_RECEIVE_LOCATION_DATA,
+                                        null, -1, "ON_RECEIVE_LOCATION_DATA", tmpDevice2);
                             }
                         }
                         break;
@@ -365,7 +352,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                                 fragment.mTimerTask.cancel();
                                 fragment.mTimerTask = null;
                             }
-
                             //不能停止后，立刻重新定位，尝试放到子线程中启动服务
                             fragment.getActivity().runOnUiThread(new Runnable() {
                                 @Override
@@ -379,7 +365,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                                 }
                             });
                         }
-
+                        break;
+                    default:
                         break;
                 }
             }
@@ -405,7 +392,6 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
             }
         }
     }
-
 
 
     @Override
@@ -445,6 +431,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         mTimerTask.cancel();
                         mTimerTask = null;
                     }
+                    //清理UI数据
+                    mLatTextView.setText("");
+                    mLngTextView.setText("");
+                    mLocMode.setText("");
+                    mRadiusValue.setText("");
                 } else {
                     ToastUtil.showShortToast(mActivity, "已停止定位");
                 }
@@ -454,6 +445,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 String deviceId = mDeviceId.getText().toString();
                 String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
                         mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
+                String owner = AVUser.getCurrentUser().getUsername();
 
                 if (SPUtil.getBoolean(getActivity(), IsLocation, false)) {
                     if (TextUtils.isEmpty(mLocationDevice.mLatitude)) {
@@ -461,8 +453,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         return;
                     }
                     //判断定位模式
-                    if (mLocationDevice.mLocMode != BDLocation.TypeGpsLocation) {
-                        ToastUtil.showShortToast(mActivity, "请等待GPS定位数据");
+                    if (mLocationDevice.mLocMode != BDLocation.TypeGpsLocation && mLocationDevice.mLocMode != BDLocation.TypeNetWorkLocation) {
+                        ToastUtil.showShortToast(mActivity, "请等待定位数据");
                         return;
                     }
                     //通过正则表达式判断 ID 和MAC地址
@@ -488,6 +480,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     }
                     mLocationDevice.mDeviceID = deviceId;
                     mLocationDevice.mMacAddress = macAddress;
+                    mLocationDevice.mOwner = owner;
+                    mLocationDevice.mStatus = "Normal"; //默认状态为 正常
+
                     //LogUtil.i("设备ID:" + mLocationDevice.mDeiviceId + " ,MAC地址: " + mLocationDevice.mMacAddress + ", 经度为："
                     //        + mLocationDevice.mLatitude + ", 纬度为：" + mLocationDevice.mLongitude);
                     mDao.add(mLocationDevice);
@@ -495,19 +490,9 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     //临时保存 撤销功能使用
                     this.undoSaveDevice = mLocationDevice;
 
-/*                    //通知recyclerview刷新
-                    Intent intent = new Intent("com.notinglife.android.action.DATA_CHANGED");
-                    intent.putExtra("flag", ON_SAVE_DATA);
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("on_save_data", mLocationDevice);
-                    intent.putExtra("on_save_data", bundle);
-                    LocalBroadcastManager.getInstance(mActivity).sendBroadcast(intent);*/
-
-                    MyLocalBroadcastManager.sendLocalBroadcast(mActivity,"DATA_CHANGED",ON_SAVE_DATA,
-                            null,-1,"on_save_data",mLocationDevice);
-
+                    MyLocalBroadcastManager.sendLocalBroadcast(mActivity, "DATA_CHANGED", ON_SAVE_DATA,
+                            null, -1, "DEVICE_DATA", mLocationDevice);
                     ToastUtil.showShortToast(mActivity, "添加设备信息成功");
-
                 } else {
                     ToastUtil.showShortToast(mActivity, "已停止定位，请重新获取定位信息");
                 }
@@ -521,13 +506,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                     return;
                 }
                 if (tmpDevice.mDeviceID.equals(undoSaveDevice.mDeviceID)) {
-                    //LogUtil.i("等待撤销的对象 "+tmpDevice.toString());
-                    DialogUtil.showDeviceDialog(v, mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
+                    DialogUtil.showDeviceEditDialog(mActivity, mHandler, "是否撤销如下保存", null, tmpDevice, -1, UNDO_SAVE);
                 } else {
                     ToastUtil.showShortToast(mActivity, "当前保存设备，无法撤销保存");
                 }
                 break;
-
             default:
                 break;
         }
@@ -575,7 +558,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
 
             mLocationDevice.mLatitude = String.valueOf(bdLocation.getLatitude());
             mLocationDevice.mLongitude = String.valueOf(bdLocation.getLongitude());
-            mLocationDevice.mRadius = String.valueOf(bdLocation.getRadius());
+            mLocationDevice.mRadius = String.valueOf(new BigDecimal(bdLocation.getRadius()).setScale(2, RoundingMode.HALF_UP).doubleValue());
             mLocationDevice.mLocMode = bdLocation.getLocType();
 
             Message locationMsg = Message.obtain();
@@ -609,6 +592,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         //可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
         //设置从config.xml中读取最新的设置
         switch (SPUtil.getString(getContext(), LocationMode, "Hight_Accuracy")) {
+            case "混合模式":
+                option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
             case "仅使用GPS":
                 option.setLocationMode(LocationClientOption.LocationMode.Device_Sensors);
                 break;

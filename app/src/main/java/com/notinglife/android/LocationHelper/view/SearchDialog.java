@@ -11,7 +11,6 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -44,16 +43,17 @@ public class SearchDialog extends Dialog {
 
     private static final String LOCATIONDEVICE = "LOCATIONDEVICE";
     private static final String TAG = "SearchDialog";
+    private onBackspaceOnclickListener backspaceOnclickListener;//回退按钮被点击了的监听器
+
 
     private Context context;
-    private View customView;
     private List<String> mDeviceIds;
     private ArrayAdapter<String> mArrayAdapter;
     private LocationDevice mLocationDevice;
     private Unbinder mUnBinder;
 
     @BindView(R.id.tv_backspace)
-    TextView mTextView;
+    TextView mBackspace;
     @BindView(R.id.listView)
     ListView mListView;
     @BindView(R.id.emptyview)
@@ -61,44 +61,25 @@ public class SearchDialog extends Dialog {
     @BindView(R.id.sv_searchView)
     SearchView mSearchView;
 
-    public SearchDialog(Context context) {
-        super(context, R.style.MyDialog);
-        this.context = context;
-
-    }
-
-    public SearchDialog(Context context, int theme){
+    public SearchDialog(Context context, int theme) {
         super(context, theme);
         this.context = context;
-        customView = LayoutInflater.from(context).inflate(theme,null);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(customView);
-        //按空白处不能取消动画
+        setContentView(R.layout.dialog_search_device);
+
+        //按空白处可以取消动画
         setCanceledOnTouchOutside(true);
         mUnBinder = ButterKnife.bind(this);
 
-        //初始化界面控件
         initView();
-        //初始化界面数据
         initData();
-        //初始化界面控件的事件
         initEvent();
-
     }
 
-
-    @Override
-    public View findViewById(int id) {
-        return super.findViewById(id);
-    }
-
-    public View getCustomView() {
-        return customView;
-    }
 
     /**
      * 初始化界面控件的显示数据回显
@@ -117,8 +98,7 @@ public class SearchDialog extends Dialog {
         spanText.setSpan(new AbsoluteSizeSpan(16, true), 0, spanText.length(),
                 Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         spanText.setSpan(new ForegroundColorSpan(Color.BLACK), 0,
-                spanText.length(),Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-
+                spanText.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         mSearchView.setQueryHint(spanText);
 
         mDeviceIds = new ArrayList<>();
@@ -131,16 +111,19 @@ public class SearchDialog extends Dialog {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent();
                 String deviceId = mDeviceIds.get(position);
-                LogUtil.i(TAG," 传递的设备ID：" +deviceId);
+                LogUtil.i(TAG, " 传递的设备ID：" + deviceId);
                 Bundle bundle = new Bundle();
-                bundle.putSerializable(LOCATIONDEVICE,mLocationDevice);
-                intent.putExtra(LOCATIONDEVICE,bundle);
-                intent.setClass(context,DeviceDetailActivity.class);
+                bundle.putSerializable(LOCATIONDEVICE, mLocationDevice);
+                intent.putExtra(LOCATIONDEVICE, bundle);
+                intent.setClass(context, DeviceDetailActivity.class);
                 context.startActivity(intent);
-                // FIXME: 2017/6/16 用listener关闭搜索框
+                dismiss();
             }
         });
+
+
     }
+
     /**
      * 初始化界面的确定和取消监听器
      */
@@ -152,18 +135,17 @@ public class SearchDialog extends Dialog {
             public boolean onQueryTextSubmit(String query) {
                 //ToastUtil.showShortToast(getApplicationContext(),"点击了开始搜索");
                 DeviceRawDao mDao = new DeviceRawDao(context);
-                if(!TextUtils.isEmpty(query)){
+                if (!TextUtils.isEmpty(query)) {
                     mLocationDevice = mDao.queryById(query);
-                    if(mLocationDevice !=null){
+                    if (mLocationDevice != null) {
                         mEmptyView.setVisibility(View.GONE);
                         String result = mLocationDevice.mDeviceID;
-                        //LogUtil.i("查询结果"+ result);
                         mDeviceIds.clear();
-                        mDeviceIds.add("设备号："+ result);
+                        mDeviceIds.add("设备号：" + result);
                         mArrayAdapter.notifyDataSetChanged();
-                    }else {
-                        //mDeviceIds.clear();
-                        //mArrayAdapter.notifyDataSetChanged();
+                    } else {
+                        mDeviceIds.clear();
+                        mArrayAdapter.notifyDataSetChanged();
                         mEmptyView.setVisibility(View.VISIBLE);
                     }
                 }
@@ -173,15 +155,42 @@ public class SearchDialog extends Dialog {
             // 当搜索内容改变时触发该方法
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (!TextUtils.isEmpty(newText)){
+                if (!TextUtils.isEmpty(newText)) {
                     //mListView.setFilterText(newText);
-                }else{
+                } else {
                     //mListView.clearTextFilter();
                 }
                 return false;
             }
         });
+
+        //设置回退按钮
+        //当页面点击 回退按钮时候，如果外界传入了 backspaceOnclickListener 对象，那么就触发该对象的onBackspaceClick方法
+        //
+        mBackspace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (backspaceOnclickListener != null) {
+                    backspaceOnclickListener.onBackspaceClick();
+                }
+            }
+        });
     }
 
+    /**
+     * 设置后退按钮的显示内容和监听
+     *
+     * @param backspaceOnclickListener
+     */
+    public void setBackspaceOnclickListener(onBackspaceOnclickListener backspaceOnclickListener) {
+        this.backspaceOnclickListener = backspaceOnclickListener;
+    }
 
+    /**
+     * 设置后退按钮被点击的接口
+     */
+    public interface onBackspaceOnclickListener {
+        //onBackspaceClick方法是抽象的，在SearchDialog中调用时候，由外界对象的具体方法完成
+        void onBackspaceClick();
+    }
 }

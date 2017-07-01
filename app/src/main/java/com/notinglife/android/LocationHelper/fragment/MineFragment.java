@@ -24,6 +24,7 @@ import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
 import com.notinglife.android.LocationHelper.activity.ManageDataActivity;
+import com.notinglife.android.LocationHelper.activity.RepairDevicesActivity;
 import com.notinglife.android.LocationHelper.activity.SettingsActivity;
 import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
@@ -136,6 +137,12 @@ public class MineFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(mActivity, SettingsActivity.class));
+            }
+        });
+        mMineDeviceToRepair.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mActivity, RepairDevicesActivity.class));
             }
         });
         return view;

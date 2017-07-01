@@ -29,7 +29,6 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
     // LeanCloud 基础包
     // LeanCloud 基础包
     // 推送与实时聊天需要的包
@@ -50,5 +49,6 @@ dependencies {
     compile 'cn.leancloud.android:avoscloud-feedback:v3.+@aar'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+    compile 'com.google.code.gson:gson:2.8.1'
 }
 

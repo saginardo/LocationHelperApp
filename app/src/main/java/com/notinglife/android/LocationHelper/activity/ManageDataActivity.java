@@ -12,10 +12,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
+import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.FileUtil;
 import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -73,14 +76,20 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
         return super.onOptionsItemSelected(item);
     }
 
+
+    // FIXME: 2017/7/1 对话框确认
     @Override
     public void onClick(View v) {
+        DeviceRawDao mDao =  new DeviceRawDao(this);
+        List<LocationDevice> list;
         switch (v.getId()) {
             case R.id.send_via_system_share:
-                FileUtil.sendFile(this,"data.txt");
+                list = mDao.queryAll();
+                FileUtil.sendFile(this,list,"data.txt");
                 break;
             case R.id.backup_via_avcloud:
-                FileUtil.backupViaCloud(this,"data.txt",mProgressBar);
+                list = mDao.queryAll();
+                FileUtil.backupViaCloud(this,list,"data.txt",mProgressBar);
                 break;
             case R.id.download_all_data:
                 FileUtil.downloadFromCloud(this,"data_cloud.txt",mProgressBar);
@@ -89,7 +98,9 @@ public class ManageDataActivity extends AppCompatActivity implements View.OnClic
                 FileUtil.deleteFromCloud(this);
                 break;
             case R.id.delete_all_data:
-                FileUtil.deleteFromLocal(this);
+
+                mDao.deleteAll();
+                FileUtil.removeFile(this);
                 MyLocalBroadcastManager.sendLocalBroadcast(this,"DATA_CHANGED",ON_DELETE_ALL_DATA,
                         null,-1,null,null);
                 break;

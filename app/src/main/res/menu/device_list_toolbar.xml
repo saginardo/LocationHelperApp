@@ -18,5 +18,6 @@
         android:id="@+id/menu_edit_mode"
         android:icon="@drawable/ic_delete"
         android:title="编辑模式"
+        android:visible="false"
         app:showAsAction="never"/>
 </menu>

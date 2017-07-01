@@ -26,5 +26,7 @@ public class MyApplication extends Application {
         AVOSCloud.initialize(this,"uoQqqT0dwOsryKRxT8JcsbPM-9Nh9j0Va","0sxHHozNS4MfAwYMReXXehPD");
         AVOSCloud.setDebugLogEnabled(true);
         AVAnalytics.enableCrashReport(this, true);
+
+
     }
 }

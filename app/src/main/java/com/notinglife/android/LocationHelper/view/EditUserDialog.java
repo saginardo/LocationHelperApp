@@ -89,7 +89,7 @@ public class EditUserDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.user_show_dialog);
+        setContentView(R.layout.dialog_edit_user);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
         mUnBinder = ButterKnife.bind(this);

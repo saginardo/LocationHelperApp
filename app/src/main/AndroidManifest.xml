@@ -15,7 +15,6 @@
 
     <!-- 扫一扫权限 -->
     <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <uses-feature android:name="android.hardware.camera"/>
     <uses-feature android:name="android.hardware.camera.autofocus"/>
@@ -52,19 +51,35 @@
         </activity>
         <activity android:name=".activity.CaptureActivity">
         </activity>
-
-        <!-- Service -->
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote">
-        </service>
-
         <activity android:name=".activity.UserDetailActivity">
         </activity>
         <activity android:name=".activity.ManageDataActivity">
         </activity>
         <activity android:name=".activity.SettingsActivity">
+        </activity>
+
+        <!-- Baidu Map Service -->
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote">
+        </service>
+        <!-- LeanCloud Push Service -->
+        <service android:name="com.avos.avoscloud.PushService"/>
+
+        <!-- My Push Receiver -->
+        <receiver
+            android:name=".receiver.RepairDeviceReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.USER_PRESENT"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="com.notinglife.android.LocationHelper.REPAIR_DEVICE"/>
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".activity.RepairDevicesActivity">
         </activity>
     </application>
 

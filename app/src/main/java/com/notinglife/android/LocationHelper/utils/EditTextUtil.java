@@ -15,18 +15,18 @@ import android.widget.EditText;
 
 public class EditTextUtil {
     public static String generateMacAddress(EditText... editTexts) {
-        if(editTexts.length<6){
+        if (editTexts.length < 6) {
             return null;
         }
         StringBuffer sb = new StringBuffer();
 
-        for(int i =0; i<editTexts.length-1;i++){
+        for (int i = 0; i < editTexts.length - 1; i++) {
             if (!TextUtils.isEmpty(editTexts[i].getText())) {
                 sb.append(editTexts[i].getText().toString()).append(":");
             }
         }
-        if (!TextUtils.isEmpty(editTexts[editTexts.length-1].getText())) {
-            sb.append(editTexts[editTexts.length-1].getText().toString());
+        if (!TextUtils.isEmpty(editTexts[editTexts.length - 1].getText())) {
+            sb.append(editTexts[editTexts.length - 1].getText().toString());
         }
         return sb.toString().toUpperCase();
     }
@@ -52,9 +52,9 @@ public class EditTextUtil {
             editText.setTransformationMethod(new AllCapTransformationUtil(true));
         }
         //设置 edittext的下一个输入框和ime键盘的确定键改写
-        for (int i=0;i<editTexts.length-1;i++){
+        for (int i = 0; i < editTexts.length - 1; i++) {
             editTexts[i].setImeOptions(EditorInfo.IME_ACTION_NEXT);
-            editTexts[i].setNextFocusForwardId(editTexts[1].getId());
+            editTexts[i].setNextFocusForwardId(editTexts[i + 1].getId());
         }
     }
 
@@ -63,7 +63,7 @@ public class EditTextUtil {
     }
 
 
-    public static void ISTOEDIT(Boolean isEditable,EditText... editTexts){
+    public static void ISTOEDIT(Boolean isEditable, EditText... editTexts) {
         for (EditText editText : editTexts) {
             editText.setEnabled(isEditable);
         }

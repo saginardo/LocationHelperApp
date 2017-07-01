@@ -20,6 +20,8 @@ public class LocationDevice implements Serializable {
     public String mMacAddress;
     public String mLatitude;
     public String mLongitude;
+    public String mOwner;
+    public String mStatus;
     public String mRadius;
     public Integer mLocMode;
 
@@ -40,10 +42,10 @@ public class LocationDevice implements Serializable {
         if(getClass() != obj.getClass()) return false;
         LocationDevice other = (LocationDevice)obj;
         return  Objects.equals(mDeviceID,other.mDeviceID)
-                && Objects.equals(mMacAddress,other.mMacAddress)
-                && Objects.equals(mLatitude,other.mLatitude)
-                && Objects.equals(mLongitude,other.mLongitude);
+                && Objects.equals(mMacAddress,other.mMacAddress);
                 //比较对象相同，不需要其精度信息
+                //&& Objects.equals(mLatitude,other.mLatitude)
+                //&& Objects.equals(mLongitude,other.mLongitude)
                 //&& Objects.equals(mRadius,other.mRadius);
     }
 

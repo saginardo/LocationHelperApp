@@ -12,6 +12,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
 
 import java.util.ArrayList;
@@ -46,6 +47,8 @@ public class ChoiceDialog extends Dialog {
     Button mBtAccept;
     @BindView(R.id.bt_cancel)
     Button mBtCancel;
+    @BindView(R.id.radio_group)
+    RadioGroup mRadioGroup;
 
 
     private onPositiveOnclickListener positiveOnclickListener;//确定按钮被点击了的监听器
@@ -55,9 +58,10 @@ public class ChoiceDialog extends Dialog {
 
 
     private static final String TAG = "ChoiceDialog";
-    //修改设置的广播的标志位
+    //修改设置选项的标志位
     private final static int LOCATION_MODE = 40;
     private final static int LOCATION_TIME = 41;
+    private final static int LOCATION_DEVICE_STATUS = 42;
 
     //SPUtil用的key
     private final static String LocationMode = "LocationMode";
@@ -68,6 +72,7 @@ public class ChoiceDialog extends Dialog {
     private List<RadioButton> mRadioButtonList;
     private Unbinder mUnBinder;
     private String mCheckButtonName;
+    private String mValue;
 
 
     public ChoiceDialog(Context context, String title, String... strings) {
@@ -79,7 +84,7 @@ public class ChoiceDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.choice_dialog);
+        setContentView(R.layout.dialog_choice);
 
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
@@ -103,32 +108,21 @@ public class ChoiceDialog extends Dialog {
         mRadioButtonList.add(mRadioButton2);
         mRadioButtonList.add(mRadioButton3);
         mRadioButtonList.add(mRadioButton4);
-
     }
 
     private void initView() {
         if (!TextUtils.isEmpty(dialogTitle)) {
             mTvTitle.setText(dialogTitle);
         }
-        if (mFlag == LOCATION_MODE) {
-            //标志位为 LOCATION_MODE,说明是选择定位模式
-            for (int i = 0; i < mChoices.length; i++) {
-                //设置对应button的显示
-                mRadioButtonList.get(i).setText(mChoices[i]);
-                mRadioButtonList.get(i).setVisibility(View.VISIBLE);
-            }
+        for (int i = 0; i < mChoices.length; i++) {
+            //设置对应button的显示
+            mRadioButtonList.get(i).setText(mChoices[i]);
+            mRadioButtonList.get(i).setVisibility(View.VISIBLE);
         }
 
-        if (mFlag == LOCATION_TIME) {
-            //标志位为 Locationtime，说明是选择定位时长
-            //标志位为 LOCATION_MODE,说明是选择定位模式
-            for (int i = 0; i < mChoices.length; i++) {
-                //设置对应button的显示
-                mRadioButtonList.get(i).setText(mChoices[i]);
-                mRadioButtonList.get(i).setVisibility(View.VISIBLE);
-            }
-        }
+        setDefaultButton();
     }
+
 
     /**
      * 初始化界面的确定和取消监听器
@@ -154,42 +148,7 @@ public class ChoiceDialog extends Dialog {
         });
 
 
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radio_group);
-        if (mFlag == LOCATION_MODE) {
-            switch (SPUtil.getString(getContext(), LocationMode, "混合模式")) {
-                case "混合模式":
-                    radioGroup.check(R.id.radioButton1);
-                    break;
-                case "仅使用GPS":
-                    radioGroup.check(R.id.radioButton2);
-                    break;
-                case "仅使用网络":
-                    radioGroup.check(R.id.radioButton3);
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (mFlag == LOCATION_TIME) {
-            switch (SPUtil.getString(getContext(), LocationTime,"60秒")) {
-                case "60秒":
-                    radioGroup.check(R.id.radioButton1);
-                    break;
-                case "120秒":
-                    radioGroup.check(R.id.radioButton2);
-                    break;
-                case "300秒":
-                    radioGroup.check(R.id.radioButton3);
-                    break;
-                case "无限制":
-                    radioGroup.check(R.id.radioButton4);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
                 RadioButton radioButton = (RadioButton) findViewById(checkedId);
@@ -220,6 +179,59 @@ public class ChoiceDialog extends Dialog {
         mFlag = flag;
     }
 
+    //设置默认选中项
+    public void setDefaultCheck(String value) {
+        mValue = value;
+    }
+
+    private void setDefaultButton() {
+        if (mFlag == LOCATION_MODE) {
+            switch (mValue) {
+                case "混合模式":
+                    mRadioGroup.check(R.id.radioButton1);
+                    break;
+                case "仅使用GPS":
+                    mRadioGroup.check(R.id.radioButton2);
+                    break;
+                case "仅使用网络":
+                    mRadioGroup.check(R.id.radioButton3);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (mFlag == LOCATION_TIME) {
+            switch (mValue) {
+                case "60秒":
+                    mRadioGroup.check(R.id.radioButton1);
+                    break;
+                case "120秒":
+                    mRadioGroup.check(R.id.radioButton2);
+                    break;
+                case "300秒":
+                    mRadioGroup.check(R.id.radioButton3);
+                    break;
+                case "无限制":
+                    mRadioGroup.check(R.id.radioButton4);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (mFlag == LOCATION_DEVICE_STATUS) {
+            switch (mValue) {
+                case "Normal":
+                    mRadioGroup.check(R.id.radioButton1);
+                    break;
+                case "OffLine":
+                    mRadioGroup.check(R.id.radioButton2);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
 
     /**
      * 设置确定按钮和取消被点击的接口
@@ -239,12 +251,15 @@ public class ChoiceDialog extends Dialog {
 
     public String getCheckButtonName() {
         //当用户什么都不选择，直接按确定，此时 mCheckButtonName为空
-        if(mCheckButtonName==null){
-            if(mFlag==LOCATION_TIME){
-               return SPUtil.getString(getContext(), LocationTime,"60秒");
+        if (mCheckButtonName == null) {
+            if (mFlag == LOCATION_TIME) {
+                return SPUtil.getString(getContext(), LocationTime, "60秒");
             }
-            if(mFlag==LOCATION_MODE){
+            if (mFlag == LOCATION_MODE) {
                 return SPUtil.getString(getContext(), LocationMode, "混合模式");
+            }
+            if (mFlag == LOCATION_DEVICE_STATUS) {
+                return mValue.equals("Normal")?"正常":"离线";
             }
         }
         return mCheckButtonName;

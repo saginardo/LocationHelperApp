@@ -22,6 +22,11 @@ import android.support.v7.widget.Toolbar;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.avos.avoscloud.AVException;
+import com.avos.avoscloud.AVInstallation;
+import com.avos.avoscloud.AVUser;
+import com.avos.avoscloud.PushService;
+import com.avos.avoscloud.SaveCallback;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.adapter.MyFragmentPagerAdapter;
 import com.notinglife.android.LocationHelper.fragment.AcqDataFragment;
@@ -100,6 +105,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //启用推送服务
+        AVInstallation.getCurrentInstallation().saveInBackground(new SaveCallback() {
+            @Override
+            public void done(AVException e) {
+                if(e==null){
+                    String installationId = AVInstallation.getCurrentInstallation().getInstallationId();
+                    // 关联  installationId 到用户表等操作……
+                    AVUser.getCurrentUser().put("deviceInstallationId",installationId);
+                    AVUser.getCurrentUser().saveInBackground();
+                }else {
+                    e.printStackTrace();
+                }
+            }
+        });
+        //设置通知默认打开的 Activity
+        PushService.setDefaultPushCallback(this, MainActivity.class);
+
+        //订阅通知频道，当该频道消息到来的时候，打开对应的 Activity；
+        // 参数依次为：当前的 context、频道名称、回调对象的类
+        PushService.subscribe(this, "Repair", RepairDevicesActivity.class);
+        //退订频道，退订之后需要重新保存 Installation
+        //PushService.unsubscribe(context, "protected");
+        //AVInstallation.getCurrentInstallation().saveInBackground();
     }
 
     @Override

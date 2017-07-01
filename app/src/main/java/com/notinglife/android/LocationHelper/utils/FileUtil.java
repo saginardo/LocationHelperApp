@@ -16,7 +16,6 @@ import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.GetDataCallback;
 import com.avos.avoscloud.ProgressCallback;
 import com.avos.avoscloud.SaveCallback;
-import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 
 import java.io.BufferedOutputStream;
@@ -43,50 +42,18 @@ import java.util.List;
 public class FileUtil {
     private static final String TAG = "FileUtil";
 
-
-    public static boolean saveToFile(Context context, LocationDevice locationDevice) {
-        StringBuffer sb = new StringBuffer();
-        sb.append(locationDevice.mDeviceID).append("#")
-                .append(locationDevice.mMacAddress.toUpperCase()).append("#")
-                .append(locationDevice.mLatitude.toUpperCase()).append("#")
-                .append(locationDevice.mLongitude.toUpperCase()).append("\n");
-        try {
-            String path = context.getExternalFilesDir("data").getPath();
-            if (path != null && path.length() > 0) {
-                File file = new File(path, "data.txt");
-                FileOutputStream out = new FileOutputStream(file, true);
-                //FileOutputStream out = context.openFileOutput("data",Context.MODE_APPEND);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
-                bw.write(sb.toString());
-                bw.flush();
-                out.flush();
-                out.close();
-                bw.close();
-                return true;
-            } else {
-                LogUtil.i(TAG, "  写入文件失败");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public static boolean saveListToFile(Context context, List<LocationDevice> list) {
-
         String path = context.getExternalFilesDir("data").getPath();
         File file = new File(path, "data.txt");
         if (file.exists()) {
             boolean delete = file.delete();
         }
         for (LocationDevice ld : list) {
-
             StringBuffer sb = new StringBuffer();
             sb.append(ld.mDeviceID).append("#")
                     .append(ld.mMacAddress.toUpperCase()).append("#")
                     .append(ld.mLatitude.toUpperCase()).append("#")
                     .append(ld.mLongitude.toUpperCase()).append("\n");
-
             try {
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
                 bw.write(sb.toString());
@@ -101,10 +68,8 @@ public class FileUtil {
     }
 
     public static List<LocationDevice> readFromFile(Context context) {
-
         List<LocationDevice> list = new ArrayList<>();
         LocationDevice locationDevice = null;
-
         try {
             String path = context.getExternalFilesDir("data").getPath();
             File file = new File(path, "data.txt");
@@ -122,8 +87,6 @@ public class FileUtil {
             }
             br.close();
             return list;
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -144,13 +107,11 @@ public class FileUtil {
      * @param activity 上下文
      * @param fileName 要发送的文件名
      */
-    public static void sendFile(Activity activity,String fileName) {
-        DeviceRawDao mDao = new DeviceRawDao(activity);
-        List<LocationDevice> mLocationDevices = mDao.queryAll();
-        if (mLocationDevices == null || mLocationDevices.size() == 0) {
+    public static void sendFile(Activity activity, List<LocationDevice> list,String fileName) {
+        if (list == null || list.size() == 0) {
             ToastUtil.showShortToast(activity, "当前没有数据，无法发送");
         } else {
-            FileUtil.saveListToFile(activity, mLocationDevices);
+            FileUtil.saveListToFile(activity, list);
             Intent intentShareFile = new Intent(Intent.ACTION_SEND);
             String myFilePath = activity.getExternalFilesDir("data").getPath();
             File file = new File(myFilePath, fileName);
@@ -165,7 +126,6 @@ public class FileUtil {
                 ToastUtil.showShortToast(activity, "没有数据文件");
             }
         }
-
     }
 
     /**
@@ -173,19 +133,17 @@ public class FileUtil {
      * @param activity 上下文对象
      * @param fileName 需要备份的文件名
      */
-    public static void backupViaCloud(final Activity activity,String fileName, final ProgressBar mProgressBar) {
+    public static void backupViaCloud(final Activity activity, List<LocationDevice> list, String fileName, final ProgressBar mProgressBar) {
         //存为文件 _File表
-        DeviceRawDao mDao = new DeviceRawDao(activity);
-        List<LocationDevice> mLocationDevices = mDao.queryAll();
-        if (mLocationDevices == null || mLocationDevices.size() == 0) {
+
+        if (list == null || list.size() == 0) {
             ToastUtil.showShortToast(activity, "当前没有数据，无法发送");
         } else {
-            FileUtil.saveListToFile(activity, mLocationDevices);
+            FileUtil.saveListToFile(activity, list);
             String myFilePath = activity.getExternalFilesDir("data").getPath();
             mProgressBar.setVisibility(View.VISIBLE);
             try {
                 final AVFile file = AVFile.withAbsoluteLocalPath("DeviceData.txt", myFilePath + "/"+fileName);
-
                 file.saveInBackground(new SaveCallback() {
                     @Override
                     public void done(AVException e) {
@@ -290,13 +248,6 @@ public class FileUtil {
             }
         });
 
-    }
-
-    public static void deleteFromLocal(final Activity activity) {
-        DeviceRawDao mDao = new DeviceRawDao(activity);
-        mDao.deleteAll();
-        FileUtil.removeFile(activity);
-        ToastUtil.showShortToast(activity,"清除本地数据完成");
     }
 
 }

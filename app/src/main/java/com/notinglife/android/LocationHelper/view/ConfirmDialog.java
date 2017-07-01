@@ -5,8 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
@@ -24,38 +22,12 @@ import butterknife.Unbinder;
  *          date 2017-06-12 14:39
  */
 
-public class EditDeviceDialog extends Dialog {
+public class ConfirmDialog extends Dialog {
 
-    @BindView(R.id.tv_edit_device_title)
+    @BindView(R.id.tv_confirm_title)
     TextView mDialogTitle;
-    @BindView(R.id.tv_is_delete_all)
-    TextView mIsDeleteAll;
-
-    @BindView(R.id.rl_device_id)
-    RelativeLayout mRLDeviceID;
-    @BindView(R.id.rl_device_lat_lng)
-    RelativeLayout mRLDeviceLatLng;
-    @BindView(R.id.rl_device_mac)
-    RelativeLayout mRLDeviceMac;
-
-    @BindView(R.id.tv_device_id)
-    TextView mTVDeviceId;
-    @BindView(R.id.tv_device_lat)
-    TextView mTVDeviceLat;
-    @BindView(R.id.tv_device_lng)
-    TextView mTVDeviceLng;
-    @BindView(R.id.tv_device_mac)
-    TextView mTVDeviceMac;
-
-    @BindView(R.id.et_device_id)
-    EditText mETDeviceId;
-    @BindView(R.id.et_device_lat)
-    EditText mETDeviceLat;
-    @BindView(R.id.et_device_lng)
-    EditText mETDeviceLng;
-    @BindView(R.id.et_device_mac)
-    EditText mETDeviceMac;
-
+    @BindView(R.id.tv_confirm_message)
+    TextView mMessage;
     @BindView(R.id.bt_accept)
     Button mPositiveButton;//确定按钮
     @BindView(R.id.bt_cancel)
@@ -68,30 +40,18 @@ public class EditDeviceDialog extends Dialog {
     private String message;
     private LocationDevice tmpDevice;
     private Unbinder mUnBinder;
-
-    //showdialog标志位
     private int mFlag;
-    private final static int DELETE_BY_ID = 0;
-    private final static int DELETE_ALL = 1;
-    private final static int UPDATE_DEVICE = 2;
-    private final static int ON_SAVE_DATA = 3; //触发保存数据的标志位
-    private final static int UNDO_SAVE = 4;
-    private final static int ON_RECEIVE_LOCATION_DATA = 5;
 
-    //设备维护标志位
-    private final static int DEVICE_REPAIR = 50;
-    private final static int DEVICE_REPAIR_DOWN = 51;
-
-    public EditDeviceDialog(Context context, String title, String msg) {
+    public ConfirmDialog(Context context, String title, String msg) {
         super(context, R.style.MyDialog);
-        dialogTitle  = title;
+        dialogTitle = title;
         message = msg;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dialog_edit_device);
+        setContentView(R.layout.dialog_confirm);
         //按空白处不能取消动画
         setCanceledOnTouchOutside(false);
         mUnBinder = ButterKnife.bind(this);
@@ -104,39 +64,25 @@ public class EditDeviceDialog extends Dialog {
         initEvent();
 
     }
+
     /**
      * 初始化界面控件的显示数据回显
      */
     private void initData() {
 
-        if(dialogTitle!=null && !dialogTitle.equals("")){
+        if (dialogTitle != null && !dialogTitle.equals("")) {
             mDialogTitle.setText(dialogTitle);
         }
-        if(message!=null && !message.equals("")){
-            mIsDeleteAll.setVisibility(View.VISIBLE);
-            mIsDeleteAll.setText(message);
+        if (message != null && !message.equals("")) {
+            mMessage.setVisibility(View.VISIBLE);
+            mMessage.setText(message);
         }
     }
 
     private void initView() {
 
-        if(tmpDevice!=null){
-            mETDeviceId.setText(tmpDevice.mDeviceID);
-            mETDeviceLat.setText(tmpDevice.mLatitude);
-            mETDeviceLng.setText(tmpDevice.mLongitude);
-            mETDeviceMac.setText(tmpDevice.mMacAddress);
-        }else {
-            mRLDeviceID.setVisibility(View.GONE);
-            mRLDeviceLatLng.setVisibility(View.GONE);
-            mRLDeviceMac.setVisibility(View.GONE);
-        }
-        if(mFlag==DELETE_BY_ID || mFlag == UNDO_SAVE || mFlag == DEVICE_REPAIR_DOWN ){
-            mETDeviceId.setEnabled(false);
-            mETDeviceLat.setEnabled(false);
-            mETDeviceLng.setEnabled(false);
-            mETDeviceMac.setEnabled(false);
-        }
     }
+
     /**
      * 初始化界面的确定和取消监听器
      */
@@ -161,18 +107,6 @@ public class EditDeviceDialog extends Dialog {
         });
     }
 
-    public void setDeviceInfo(LocationDevice locationDevice) {
-        tmpDevice = new LocationDevice();
-        tmpDevice = locationDevice;
-    }
-
-    public LocationDevice getDeviceInfo() {
-        tmpDevice.mDeviceID = mETDeviceId.getText().toString();
-        tmpDevice.mLatitude = mETDeviceLat.getText().toString();
-        tmpDevice.mLongitude = mETDeviceLng.getText().toString();
-        tmpDevice.mMacAddress = mETDeviceMac.getText().toString();
-        return tmpDevice;
-    }
 
     /**
      * 设置确定按钮的显示内容和监听

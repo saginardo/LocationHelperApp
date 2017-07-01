@@ -28,6 +28,7 @@ import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
+import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.view.EmptyRecyclerView;
 
@@ -53,13 +54,6 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     public static final String LOCATIONDEVICE = "LOCATIONDEVICE";
     public static final String DEVICEPOSITION = "DEVICEPOSITION";
     private static final String TAG = "DeviceListFragment";
-
-
-    @BindView(R.id.id_recyclerview)
-    EmptyRecyclerView mRecyclerView;
-    @BindView(R.id.id_empty_view)
-    View mEmptyView;
-
     //showdialog标志位
     private final static int DELETE_BY_ID = 0;
     private final static int DELETE_ALL = 1;
@@ -71,13 +65,18 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     private final static int ON_EDIT_DEVICE = 7;
     private final static int ON_DELETE_ALL_DATA = 8;
 
-
-
+    //设备维护标志位
+    private final static int DEVICE_REPAIR = 50;
+    private final static int DEVICE_REPAIR_DOWN = 51;
 
     @BindView(R.id.device_list_toolBar)
     Toolbar mDeviceListToolBar;
     @BindView(R.id.progress_bar)
     ProgressBar mProgressBar;
+    @BindView(R.id.id_recyclerview)
+    EmptyRecyclerView mRecyclerView;
+    @BindView(R.id.id_empty_view)
+    View mEmptyView;
 
     private DeviceRecyclerAdapter mDeviceRecyclerAdapter;
     private List<LocationDevice> mList;
@@ -86,7 +85,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     public Activity mActivity;
     private LocalBroadcastManager broadcastManager;
     private MyReceiver mReceiver;
-    private Unbinder mUnbinder;
+    private Unbinder mUnBinder;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,17 +97,16 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = View.inflate(mActivity, R.layout.fragment_device_list, null);
-        mUnbinder = ButterKnife.bind(this, view);
+        mUnBinder = ButterKnife.bind(this, view);
 
         mDao = new DeviceRawDao(mActivity);
         mList = new ArrayList<>();
-        if(mDao.queryAll()!=null){
+        if (mDao.queryAll() != null) {
             mList.addAll(mDao.queryAll());
         }
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(mActivity);
         mRecyclerView.setLayoutManager(layoutManager);
-
         mDeviceRecyclerAdapter = new DeviceRecyclerAdapter(mActivity, mList);
         mRecyclerView.setAdapter(mDeviceRecyclerAdapter);
         mRecyclerView.setEmptyView(mEmptyView);
@@ -122,16 +120,14 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(LOCATIONDEVICE, locationDevice);
                 intent.putExtra(DEVICEPOSITION, position);
-                intent.putExtra(LOCATIONDEVICE, bundle);
-                //传入mList中的position信息，便于回传修改
+                intent.putExtra(LOCATIONDEVICE, bundle);//传入mList中的position信息，便于回传修改
                 intent.setClass(mActivity, DeviceDetailActivity.class);
                 startActivity(intent);
             }
 
             @Override
             public void onItemLongClick(View view, int position) {
-                //showDeviceDialog(view, "修改设备信息", null, mList.get(position), position, UPDATE_DEVICE);
-                DialogUtil.showDeviceDialog(view, mActivity, mHandler, "删除设备信息", null, mList.get(position), position, DELETE_BY_ID);
+                DialogUtil.showDeviceEditDialog(mActivity, mHandler, "删除设备信息", null, mList.get(position), position, DELETE_BY_ID);
 
             }
         }));
@@ -171,7 +167,6 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     }
 
 
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -180,7 +175,6 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         broadcastManager = LocalBroadcastManager.getInstance(mActivity);
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.notinglife.android.action.DATA_CHANGED"); //DeviceDetailActivity 发送的修改设备信息的广播
-        filter.addAction("com.notinglife.android.action.UNDO_SAVE"); //AcqDataFragment 发送的撤销更改的广播
         mReceiver = new MyReceiver();
         broadcastManager.registerReceiver(mReceiver, filter);
 
@@ -196,12 +190,13 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                         DialogUtil.showSearchDialog(mActivity);
                         return true;
                     case R.id.menu_refresh_mode:
-                        if(mDao.queryAll()!=null){
+                        if (mDao.queryAll() != null) {
                             mList.clear();
                             mList.addAll(mDao.queryAll());
                             mDeviceRecyclerAdapter.notifyDataSetChanged();
                         }
                         return true;
+                    // TODO: 2017/6/30 编辑模式
                     case R.id.menu_edit_mode:
                         return true;
                     default:
@@ -221,49 +216,28 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mUnbinder.unbind();
+        mUnBinder.unbind();
     }
 
     private static class MyHandler extends Handler {
         WeakReference<DeviceListFragment> mFragment;
+
         MyHandler(DeviceListFragment fragment) {
             mFragment = new WeakReference<>(fragment);
         }
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             int flag = msg.what;
             int position = msg.arg1;
             DeviceListFragment fragment = mFragment.get();
-
+            LocationDevice tmpDevice = (LocationDevice) msg.obj;
             if (fragment != null) {
-                //删除所有设备
-                if (flag == DELETE_ALL) {
-                    fragment.mDao.deleteAll();
-                    fragment.mList.clear();
-                    fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
-                    ToastUtil.showShortToast(fragment.getActivity(), "成功清除所有设备信息");
-                }
-
-                if (flag == UPDATE_DEVICE) {
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
-                    if (tmpDevice != null && tmpDevice.mDeviceID != null && !tmpDevice.mDeviceID.equals("")) {
-                        int update = fragment.mDao.update(tmpDevice);
-                        if (update == 1) {
-                            ToastUtil.showShortToast(fragment.getActivity(), "成功修改设备信息");
-                            fragment.mList.set(position, tmpDevice);
-                            fragment.mDeviceRecyclerAdapter.notifyItemChanged(position);
-                        } else {
-                            //这里应该判断不到，在修改之前已经查询输入的ID是否合法，考虑是否删除？
-                            ToastUtil.showShortToast(fragment.getActivity(), "修改失败，请检查ID是否输入错误");
-                        }
-                    }
-                }
                 if (flag == DELETE_BY_ID) {
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
+
                     if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
                         int delete = fragment.mDao.deleteById(tmpDevice.mID);
-
                         if (delete == 1) {
                             ToastUtil.showShortToast(fragment.getActivity(), "成功删除设备信息");
                             fragment.mList.remove(position);
@@ -284,9 +258,7 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
                 if (flag == UNDO_SAVE) {
                     // TODO: 2017/6/15 暂时没有mList的position信息
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     fragment.mDao.deleteById(tmpDevice.mID);
-
                     List<LocationDevice> locationDevices = fragment.mDao.queryAll();
                     fragment.mList.clear();
                     fragment.mList.addAll(locationDevices);
@@ -295,26 +267,28 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
 
 
                 if (flag == ON_EDIT_DEVICE) {
-                    LocationDevice tmpDevice = (LocationDevice) msg.obj;
                     if (tmpDevice != null && tmpDevice.mID != null && tmpDevice.mID > 0) {
                         int update = fragment.mDao.update(tmpDevice);
-
                         if (update == 1) {
                             ToastUtil.showShortToast(fragment.getActivity(), "成功修改设备信息");
+                            position = fragment.mList.indexOf(tmpDevice);
                             fragment.mList.set(position, tmpDevice);
                             fragment.mDeviceRecyclerAdapter.notifyItemChanged(position);
                         } else {
-                            //这里应该判断不到，在修改之前已经查询输入的ID是否合法，考虑是否删除？
                             ToastUtil.showShortToast(fragment.getActivity(), "修改失败，请检查ID是否输入错误");
                         }
                     }
                 }
-                if(flag==ON_DELETE_ALL_DATA){
+                if (flag == ON_DELETE_ALL_DATA) {
                     fragment.mList.clear();
                     fragment.mDeviceRecyclerAdapter.notifyDataSetChanged();
                 }
-
-
+                if (flag == DEVICE_REPAIR_DOWN) {
+                    position = fragment.mList.indexOf(tmpDevice); //因为待维护设备列表的position和deviceListFragment不一致，不能直接使用
+                    LogUtil.i(TAG, "position = " + position);
+                    fragment.mList.set(position, tmpDevice);
+                    fragment.mDeviceRecyclerAdapter.notifyItemChanged(position);
+                }
             }
         }
     }
@@ -372,8 +346,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 }
                 position = mList.indexOf(deviceToDo);
                 //// FIXED: 2017/6/13 rework
-                //showDeviceDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
-                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                //showDeviceEditDialog(v, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
+                DialogUtil.showDeviceEditDialog(v, mActivity, mHandler, "删除当前设备", null, deviceToDo, position, DELETE_BY_ID);
                 break;
 
             case R.id.bt_delete_all:
@@ -382,8 +356,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                     return;
                 }
                 // FIXED: 2017/6/13 rework
-                //showDeviceDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
-                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+                //showDeviceEditDialog(v, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
+                DialogUtil.showDeviceEditDialog(v, mActivity, mHandler, "删除所有设备信息", "请确认是否删除所有设备信息", null, -1, DELETE_ALL);
 
                 break;
 
@@ -421,8 +395,8 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
                 // FIXED: 2017/6/13 如何获得对象的位置
                 // 通过重写 对象的 hashCode和equals方法，判断查询出来的对象是同一个对象，从而获取在mList中的位置
                 position = mList.indexOf(deviceToDo);
-                //showDeviceDialog(v, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);
-                DialogUtil.showDeviceDialog(v, mActivity, mHandler, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);*/
+                //showDeviceEditDialog(v, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);
+                DialogUtil.showDeviceEditDialog(v, mActivity, mHandler, "修改设备信息", null, deviceToDo, position, UPDATE_DEVICE);*/
             default:
                 break;
         }
@@ -475,62 +449,17 @@ public class DeviceListFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    // FIXME: 2017/6/29 重构
     private class MyReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+
             int flag = intent.getIntExtra("flag", -1);
-
-            if (flag == ON_SAVE_DATA) {
-                Bundle on_save_data = intent.getBundleExtra("on_save_data");
-                LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("on_save_data");
-
-                Message message = Message.obtain();
-                message.what = ON_SAVE_DATA;
-                message.obj = tmpDevice;
-
-                //  LogUtil.i("消息标志位 "+ message.what +" , 消息对象 "+message.obj);
-                mHandler.sendMessage(message);
-            }
-
-            if (flag == UNDO_SAVE) {
-                Bundle on_save_data = intent.getBundleExtra("undo_save_device");
-                LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("undo_save_device");
-
-                Message message = Message.obtain();
-                message.what = UNDO_SAVE;
-                message.obj = tmpDevice;
-
-                // LogUtil.i("消息标志位 "+ message.what +" , 消息对象 "+message.obj);
-                mHandler.sendMessage(message);
-            }
-            //设备详情 DeviceDetailActivity 发送的广播
-            if (flag == ON_EDIT_DEVICE) {
-                int position = intent.getIntExtra(DEVICEPOSITION, -1);
-                Bundle on_save_data = intent.getBundleExtra("on_edit_device");
-                LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("on_edit_device");
-
-                Message message = Message.obtain();
-                message.what = ON_EDIT_DEVICE;
-                message.obj = tmpDevice;
-                message.arg1 = position;
-                //LogUtil.i(TAG,"消息标志位 "+ message.what +" , 消息对象 "+message.obj+" , 消息位置"+intExtra);
-                mHandler.sendMessage(message);
-            }
-            if(flag== ON_DELETE_ALL_DATA){
-                Message message = Message.obtain();
-                message.what = ON_DELETE_ALL_DATA;
-                mHandler.sendMessage(message);
-            }
-            if(flag==DELETE_BY_ID){
-                Bundle on_delete_device = intent.getBundleExtra("on_delete_device");
-                LocationDevice tmpDevice = (LocationDevice) on_delete_device.getSerializable("on_delete_device");
-                Message message = Message.obtain();
-                message.what = DELETE_BY_ID;
-                message.arg1 = intent.getIntExtra(DEVICEPOSITION,-1);//设备位置
-                message.obj = tmpDevice;
-                mHandler.sendMessage(message);
-            }
+            int position = intent.getIntExtra(DEVICEPOSITION, -1);
+            Message message = Message.obtain();
+            message.what = flag;
+            message.obj = intent.getBundleExtra("DEVICE_DATA").getSerializable("DEVICE_DATA");
+            message.arg1 = position;
+            mHandler.sendMessage(message);
 
         }
     }

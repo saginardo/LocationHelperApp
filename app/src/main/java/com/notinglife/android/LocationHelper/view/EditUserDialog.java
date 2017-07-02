@@ -77,6 +77,8 @@ public class EditUserDialog extends Dialog {
 
     private final static int ON_EDIT_USER_EMAIL = 30;
     private final static int ON_CHANGE_USER_PASSWORD = 31;
+    private final static int ON_RESET_PASSWORD = 32;
+
 
     private static final String TAG = "EditUserDialog";
 
@@ -112,6 +114,17 @@ public class EditUserDialog extends Dialog {
 
 
     private void initView() {
+
+        if(mFlag==ON_RESET_PASSWORD){
+            mTvEditUserTitle.setText(dialogTitle);
+            mTvUserNameInfo.setEnabled(true);
+
+            mTvUserEmail.setVisibility(View.GONE);
+            mTvUserEmailRepeat.setVisibility(View.GONE);
+
+            mTvUserEmailInfo.setVisibility(View.GONE);
+            mTvUserEmailInfoRepeat.setVisibility(View.GONE);
+        }
 
         if(mFlag==ON_EDIT_USER_EMAIL){
             mTvEditUserTitle.setText(dialogTitle);
@@ -179,6 +192,10 @@ public class EditUserDialog extends Dialog {
             mUser.mEmail = s2;
         }
         return mUser;
+    }
+
+    public String getUserName(){
+        return mTvUserNameInfo.getText().toString().trim();
     }
 
 

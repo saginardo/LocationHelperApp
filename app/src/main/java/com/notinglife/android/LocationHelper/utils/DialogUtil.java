@@ -44,6 +44,7 @@ public class DialogUtil {
 
     private final static int ON_EDIT_USER_EMAIL = 30;
     private final static int ON_CHANGE_USER_PASSWORD = 31;
+    private final static int ON_RESET_PASSWORD = 32;
 
     //修改设置选项的标志位
     private final static int LOCATION_MODE = 40;
@@ -142,7 +143,11 @@ public class DialogUtil {
                     handler.sendMessage(msg);
                     mEditUserDialog.dismiss();
                 }
-
+                if(flag==ON_RESET_PASSWORD){
+                    msg.obj = mEditUserDialog.getUserName();
+                    handler.sendMessage(msg);
+                    mEditUserDialog.dismiss();
+                }
             }
         });
 

@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +19,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -28,11 +31,14 @@ import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
 import com.avos.avoscloud.RequestEmailVerifyCallback;
+import com.avos.avoscloud.RequestPasswordResetCallback;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import butterknife.BindView;
@@ -72,8 +78,15 @@ public class LoginActivity extends AppCompatActivity {
 
     @BindView(R.id.email_resend_button)
     Button mEmailResendButton;
+    @BindView(R.id.reset_password_button)
+    Button mResetPasswordButton;
+    @BindView(R.id.email_login_form)
+    LinearLayout mEmailLoginForm;
     private Context mContext;
     private Unbinder mUnBinder;
+    private Handler mHandler;
+
+    private final static int ON_RESET_PASSWORD = 32;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,6 +95,7 @@ public class LoginActivity extends AppCompatActivity {
         mUnBinder = ButterKnife.bind(this);
 
         mContext = getApplicationContext();
+        mHandler = new MyHandler(this);
 
         if (AVUser.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
@@ -117,7 +131,62 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        mResetPasswordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resetPassword();
+            }
+        });
+    }
 
+    private static class MyHandler extends Handler {
+        WeakReference<LoginActivity> mActivity;
+
+        MyHandler(LoginActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int flag = msg.what;
+            final LoginActivity activity = mActivity.get();
+            if (activity != null) {
+                if (flag == ON_RESET_PASSWORD) {
+                    String username = (String) msg.obj;
+                    //LogUtil.i(TAG, "收到" + username + "修改密码的请求");
+                    final String[] userEmail = new String[1];
+                    AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
+                    userEmailQuery.whereEqualTo("targetUserName", username);
+                    userEmailQuery.findInBackground(new FindCallback<AVObject>() {
+                        @Override
+                        public void done(List<AVObject> list, AVException e) {
+                            if (list != null && list.size() > 0) {
+                                AVObject avObject = list.get(0);
+                                userEmail[0] = avObject.getString("emailAddress");
+                                //LogUtil.i(TAG, userEmail[0]);
+                                AVUser.requestPasswordResetInBackground(userEmail[0], new RequestPasswordResetCallback() {
+                                    @Override
+                                    public void done(AVException e) {
+                                        if (e == null) {
+                                            //求重发验证邮件成功
+                                            ToastUtil.showShortToast(activity, "验证邮件已经重新发送，请检查注册邮箱");
+                                        }
+                                    }
+                                });
+                            } else {
+                                ToastUtil.showShortToast(activity, "没有查询到该用户，请检查用户名是否输入错误");
+                            }
+                        }
+                    });
+                }
+
+            }
+        }
+    }
+
+    private void resetPassword() {
+        DialogUtil.showUserEditDialog(this, mHandler, "重置密码", null, null, ON_RESET_PASSWORD);
     }
 
     private void attemptLogin() {

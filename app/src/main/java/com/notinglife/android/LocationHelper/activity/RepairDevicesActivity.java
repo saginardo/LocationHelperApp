@@ -24,7 +24,6 @@ import com.notinglife.android.LocationHelper.adapter.DeviceRecyclerAdapter;
 import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
 import com.notinglife.android.LocationHelper.view.EmptyRecyclerView;
 
@@ -196,11 +195,9 @@ public class RepairDevicesActivity extends AppCompatActivity {
 
     private static class MyHandler extends Handler {
         WeakReference<RepairDevicesActivity> mActivity;
-
         MyHandler(RepairDevicesActivity activity) {
             mActivity = new WeakReference<>(activity);
         }
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);

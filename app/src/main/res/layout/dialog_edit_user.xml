@@ -47,7 +47,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
                 android:textColor="@color/colorBlack"
-                android:text="当前用户为:"/>
+                android:text="用户名:"/>
 
             <EditText
                 android:id="@+id/tv_user_name_info"
@@ -55,7 +55,9 @@
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/tv_username"
                 android:background="@null"
-                android:text="testuser"
+                android:maxLines="1"
+                android:maxLength="18"
+                android:text="    "
                 android:textColor="@color/colorTextGray"
                 android:textSize="14sp"/>
         </RelativeLayout>

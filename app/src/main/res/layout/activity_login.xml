@@ -83,6 +83,14 @@
             android:text="@string/register"
             android:textStyle="bold"/>
         <Button
+            android:id="@+id/reset_password_button"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/forgot_password"
+            android:textStyle="bold"/>
+        <Button
             android:id="@+id/email_resend_button"
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"

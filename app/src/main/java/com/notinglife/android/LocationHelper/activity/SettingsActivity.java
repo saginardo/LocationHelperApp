@@ -112,7 +112,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 DialogUtil.showChoiceDialog(this, mHandler, "请选择定位模式", defaultCheck, LOCATION_MODE, "混合模式", "仅使用GPS", "仅使用网络");
                 break;
             case R.id.location_time:
-                defaultCheck = SPUtil.getString(getContext(), LocationTime, "60秒");
+                defaultCheck = SPUtil.getString(getContext(), LocationTime, "300秒");
                 DialogUtil.showChoiceDialog(this, mHandler, "请选择后台定位时长", defaultCheck, LOCATION_TIME, "60秒", "120秒", "300秒", "无限制");
                 break;
             default:

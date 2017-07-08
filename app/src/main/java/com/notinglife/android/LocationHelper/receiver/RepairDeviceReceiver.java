@@ -31,6 +31,7 @@ public class RepairDeviceReceiver extends BroadcastReceiver {
     private Context mContext;
     private String alert;
     private String title;
+    private List<String> mDevicesID;
 
 
     @Override
@@ -44,13 +45,17 @@ public class RepairDeviceReceiver extends BroadcastReceiver {
 
         Gson gson = new Gson();
         RepairDevices repairDevices = gson.fromJson(IntentData, RepairDevices.class);
-        alert = repairDevices.data.alert;
-        title = repairDevices.data.title;
-        List<String> devicesID = repairDevices.data.devices;
+
+        if(repairDevices!=null){
+            alert = repairDevices.data.alert;
+            title = repairDevices.data.title;
+            mDevicesID = repairDevices.data.devices;
+        }
 
         //只有收到 "Repair"的广播才做出修改
         if(channel!=null && channel.equals("Repair")){
-            updateDatabase(context, devicesID);
+            updateDatabase(context, mDevicesID);
+            // FIXME: 2017/7/3 当前本地有设备，才发送通知
             sendNotification();
         }
     }

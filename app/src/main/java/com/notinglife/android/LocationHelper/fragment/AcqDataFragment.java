@@ -431,11 +431,11 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                         mTimerTask.cancel();
                         mTimerTask = null;
                     }
-                    //清理UI数据
+/*                  //清理UI数据
                     mLatTextView.setText("");
                     mLngTextView.setText("");
                     mLocMode.setText("");
-                    mRadiusValue.setText("");
+                    mRadiusValue.setText("");*/
                 } else {
                     ToastUtil.showShortToast(mActivity, "已停止定位");
                 }

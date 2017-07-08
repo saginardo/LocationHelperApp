@@ -198,30 +198,11 @@
                 android:weightSum="1">
 
                 <TextView
-                    android:id="@+id/tv_lat"
+                    android:id="@+id/tv_lng"
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:text="经度: "
-                    android:textColor="@color/colorLitleBlack"
-                    android:textSize="18sp"/>
-
-                <TextView
-                    android:id="@+id/tv_lat_info"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="start"
-                    android:text="**.******"
-                    android:textColor="@color/colorLitleBlack"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/tv_lng"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:gravity="center_vertical"
-                    android:text="纬度: "
                     android:textColor="@color/colorLitleBlack"
                     android:textSize="18sp"/>
 
@@ -232,6 +213,24 @@
                     android:text="**.******"
                     android:textColor="@color/colorLitleBlack"
                     android:layout_marginEnd="10dp"
+                    android:textSize="16sp"/>
+                <TextView
+                    android:id="@+id/tv_lat"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="10dp"
+                    android:text="纬度: "
+                    android:textColor="@color/colorLitleBlack"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tv_lat_info"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="**.******"
+                    android:textColor="@color/colorLitleBlack"
                     android:textSize="16sp"/>
                 <Button
                     android:id="@+id/bt_relocation"

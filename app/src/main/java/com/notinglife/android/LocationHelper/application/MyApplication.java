@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVOSCloud;
+import com.baidu.mapapi.CoordType;
 import com.baidu.mapapi.SDKInitializer;
 import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
@@ -19,7 +20,10 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        //百度地图的初始化
         SDKInitializer.initialize(getApplicationContext());
+        SDKInitializer.setCoordType(CoordType.BD09LL);//默认为BD09LL坐标
+
         ZXingLibrary.initDisplayOpinion(this);
 
         // 初始化参数依次为 this, AppId, AppKey

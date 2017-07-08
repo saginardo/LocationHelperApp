@@ -12,7 +12,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.notinglife.android.LocationHelper.R;
-import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
 
 import java.util.ArrayList;
@@ -253,7 +252,7 @@ public class ChoiceDialog extends Dialog {
         //当用户什么都不选择，直接按确定，此时 mCheckButtonName为空
         if (mCheckButtonName == null) {
             if (mFlag == LOCATION_TIME) {
-                return SPUtil.getString(getContext(), LocationTime, "60秒");
+                return SPUtil.getString(getContext(), LocationTime, "300秒");
             }
             if (mFlag == LOCATION_MODE) {
                 return SPUtil.getString(getContext(), LocationMode, "混合模式");

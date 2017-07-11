@@ -22,6 +22,11 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.FLASHLIGHT"/>
 
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.READ_PROFILE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
     <application
         android:name=".application.MyApplication"
         android:allowBackup="true"
@@ -36,10 +41,11 @@
             android:value="yBuYy3cGF3h3Hf7mH9Tb8QEBO5HmSW6A"/>
 
         <!-- Activity -->
-        <activity android:name=".activity.LoginActivity">
+        <activity
+            android:name=".activity.LoginActivity"
+            android:label="@string/title_activity_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
@@ -81,6 +87,10 @@
 
         <activity android:name=".activity.RepairDevicesActivity">
         </activity>
+        <activity android:name=".activity.HttpActivity">
+
+        </activity>
+
     </application>
 
 </manifest>

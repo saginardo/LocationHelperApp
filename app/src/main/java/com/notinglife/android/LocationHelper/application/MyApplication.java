@@ -28,8 +28,9 @@ public class MyApplication extends Application {
 
         // 初始化参数依次为 this, AppId, AppKey
         AVOSCloud.initialize(this,"uoQqqT0dwOsryKRxT8JcsbPM-9Nh9j0Va","0sxHHozNS4MfAwYMReXXehPD");
-        AVOSCloud.setDebugLogEnabled(true);
-        AVAnalytics.enableCrashReport(this, true);
+        AVOSCloud.setDebugLogEnabled(false);
+        AVAnalytics.enableCrashReport(this, false);
+
 
 
     }

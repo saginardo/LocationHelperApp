@@ -9,6 +9,7 @@
     android:focusableInTouchMode="true"
     android:orientation="vertical"
     tools:context="com.notinglife.android.LocationHelper.activity.MainActivity">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/acq_toolbar"
         android:layout_width="match_parent"
@@ -19,10 +20,10 @@
     </android.support.v7.widget.Toolbar>
 
     <LinearLayout
-        android:layout_below="@id/acq_toolbar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
+        android:layout_below="@id/acq_toolbar"
 
         android:orientation="vertical">
 
@@ -302,6 +303,7 @@
                 android:background="@drawable/btn_shape"
                 android:text="撤销保存"
                 android:textSize="16sp"/>
+
         </LinearLayout>
 
     </LinearLayout>

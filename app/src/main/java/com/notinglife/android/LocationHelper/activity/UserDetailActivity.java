@@ -25,6 +25,7 @@ import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.User;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.SPUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
 
@@ -80,7 +81,7 @@ public class UserDetailActivity extends AppCompatActivity {
         setSupportActionBar(mMineToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        if (AVUser.getCurrentUser() != null) {
+        if (SPUtil.getString(mActivity,"username",null) != null) {
 
             final AVUser currentUser = AVUser.getCurrentUser();
             final String mObjectID = currentUser.getObjectId();

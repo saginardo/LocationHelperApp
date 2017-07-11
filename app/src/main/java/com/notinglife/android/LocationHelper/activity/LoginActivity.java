@@ -23,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
@@ -32,18 +31,30 @@ import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.LogInCallback;
 import com.avos.avoscloud.RequestEmailVerifyCallback;
 import com.avos.avoscloud.RequestPasswordResetCallback;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.domain.MsgData;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
+import com.notinglife.android.LocationHelper.utils.GlobalConstant;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.NetUtil;
+import com.notinglife.android.LocationHelper.utils.OkHttpUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
+import com.notinglife.android.LocationHelper.utils.SPUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 import static com.avos.avoscloud.AVException.EMAIL_NOT_FOUND;
 import static com.avos.avoscloud.AVException.USERNAME_PASSWORD_MISMATCH;
@@ -87,6 +98,11 @@ public class LoginActivity extends AppCompatActivity {
     private Handler mHandler;
 
     private final static int ON_RESET_PASSWORD = 32;
+    private final static int ON_LOGIN_SUCCESS = 33;
+    private final static int ON_LOGIN_FAILED = 34;
+    private final static int ON_LOGIN_ERROR = 35;
+    private final static int ON_LOGIN_TIMEOUT = 36;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -97,7 +113,9 @@ public class LoginActivity extends AppCompatActivity {
         mContext = getApplicationContext();
         mHandler = new MyHandler(this);
 
-        if (AVUser.getCurrentUser() != null) {
+        String username = SPUtil.getString(mContext, "username", null);
+
+        if (username != null && !username.equals("")) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             LoginActivity.this.finish();
         }
@@ -122,7 +140,7 @@ public class LoginActivity extends AppCompatActivity {
                 attemptLogin();
             }
         });
-
+/*
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -136,7 +154,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 resetPassword();
             }
-        });
+        });*/
     }
 
     private static class MyHandler extends Handler {
@@ -180,7 +198,23 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
                 }
-
+                if (flag == ON_LOGIN_SUCCESS) {
+                    ToastUtil.showShortToast(activity.mContext, "登录成功");
+                    SPUtil.setString(activity.mContext, "username", msg.obj.toString());
+                    activity.startActivity(new Intent(activity, MainActivity.class));
+                    activity.finish();
+                }
+                if (flag == ON_LOGIN_FAILED) {
+                    ToastUtil.showShortToast(activity.mContext, "登录失败");
+                }
+                if (flag == ON_LOGIN_ERROR) {
+                    activity.showProgress(false);
+                    ToastUtil.showShortToast(activity.mContext, "登录错误，请联系管理员");
+                }
+                if (flag == ON_LOGIN_TIMEOUT) {
+                    activity.showProgress(false);
+                    ToastUtil.showShortToast(activity.mContext, "登录超时，请检查网络连接");
+                }
             }
         }
     }
@@ -189,7 +223,7 @@ public class LoginActivity extends AppCompatActivity {
         DialogUtil.showUserEditDialog(this, mHandler, "重置密码", null, null, ON_RESET_PASSWORD);
     }
 
-    private void attemptLogin() {
+    private void acCloudLogin() {
         mUsernameView.setError(null);
         mPasswordView.setError(null);
 
@@ -277,6 +311,86 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
+    private void attemptLogin() {
+
+        mUsernameView.setError(null);
+        mPasswordView.setError(null);
+
+        final String username = mUsernameView.getText().toString();
+        final String password = mPasswordView.getText().toString();
+
+
+        boolean cancel = false;
+        View focusView = null;
+        if (!RegexValidator.isUserName(username)) {
+            mUsernameView.setError(getString(R.string.error_username_invalid));
+            focusView = mUsernameView;
+            cancel = true;
+        }
+        if (!RegexValidator.isPassword(password)) {
+            mPasswordView.setError(getString(R.string.error_password_invalid));
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
+        if (cancel) {
+            focusView.requestFocus();
+        } else {
+            //判断网络状态
+            NetUtil.NetState netState = NetUtil.getNetState(mContext);
+            if (netState == NetUtil.NetState.NET_NO) {
+                ToastUtil.showShortToast(mContext, "没有网络，请打开网络连接");
+            } else {
+                showProgress(true);
+                HashMap<String, String> keyValue = new HashMap<>();
+                keyValue.put("username", username);
+                keyValue.put("password", password);
+                OkHttpUtil.doPost(mContext, GlobalConstant.LOGIN_URL, keyValue, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        e.printStackTrace();
+                        Message msg = Message.obtain();
+                        msg.what = ON_LOGIN_TIMEOUT;
+                        mHandler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        Message msg = Message.obtain();
+                        try {
+                            MsgData msgData = new Gson().fromJson(response.body().string(), MsgData.class);
+                            LogUtil.i(TAG, msgData.code + "");
+                            //100代表登录成功
+                            if (msgData.code == 100) {
+                                String[] split = msgData.message.split("#");
+
+                                if (split.length == 2) {
+
+                                    SPUtil.setString(mContext, "token1", split[0]);
+                                    SPUtil.setString(mContext, "token2", split[1]);
+                                    msg.what = ON_LOGIN_SUCCESS;
+                                    msg.obj = username;
+                                    mHandler.sendMessage(msg);
+                                } else {
+                                    msg.what = ON_LOGIN_FAILED;
+                                    mHandler.sendMessage(msg);
+                                }
+                            }
+                        } catch (JsonSyntaxException e) {
+                            LogUtil.i(TAG, "json解析失败！");
+                            msg.what = ON_LOGIN_ERROR;
+                            mHandler.sendMessage(msg);
+                        }
+                    }
+                });
+            }
+        }
+
+
+    }
+
+
     private void showProgress(final boolean isShow) {
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
@@ -300,18 +414,6 @@ public class LoginActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        AVAnalytics.onPause(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        AVAnalytics.onResume(this);
     }
 
     @Override

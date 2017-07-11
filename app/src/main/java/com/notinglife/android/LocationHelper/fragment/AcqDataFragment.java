@@ -98,6 +98,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
     Button mSaveButton;
     @BindView(R.id.bt_undo_save)
     Button mUndoSave;
+
     @BindView(R.id.acq_toolbar)
     Toolbar mAcqToolbar;
     @BindView(R.id.tv_lat)
@@ -173,6 +174,8 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
         mStopLocation.setOnClickListener(this);
         mSaveButton.setOnClickListener(this);
         mUndoSave.setOnClickListener(this);
+
+
         //设置输入框的属性
         EditTextUtil.editTextToUpperCase(mDeviceId, mMacAddress_1, mMacAddress_2,
                 mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);

@@ -24,6 +24,7 @@ public class UIRefreshUtil {
 
     public static void onLogout(Context context){
         AVUser.logOut();
+
         //通过本地广播通知刷新UI
         Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
         logoutIntent.putExtra("flag", ON_LOGOUT);

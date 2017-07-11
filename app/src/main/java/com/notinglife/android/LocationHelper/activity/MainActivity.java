@@ -24,7 +24,6 @@ import android.widget.Toast;
 
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVInstallation;
-import com.avos.avoscloud.AVUser;
 import com.avos.avoscloud.PushService;
 import com.avos.avoscloud.SaveCallback;
 import com.notinglife.android.LocationHelper.R;
@@ -112,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
                 if(e==null){
                     String installationId = AVInstallation.getCurrentInstallation().getInstallationId();
                     // 关联  installationId 到用户表等操作……
-                    AVUser.getCurrentUser().put("deviceInstallationId",installationId);
-                    AVUser.getCurrentUser().saveInBackground();
+                    //AVUser.getCurrentUser().put("deviceInstallationId",installationId);
+                    //AVUser.getCurrentUser().saveInBackground();
                 }else {
                     e.printStackTrace();
                 }

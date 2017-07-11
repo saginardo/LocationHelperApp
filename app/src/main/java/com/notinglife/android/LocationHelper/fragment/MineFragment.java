@@ -20,7 +20,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.activity.LoginActivity;
 import com.notinglife.android.LocationHelper.activity.ManageDataActivity;
@@ -28,8 +27,8 @@ import com.notinglife.android.LocationHelper.activity.RepairDevicesActivity;
 import com.notinglife.android.LocationHelper.activity.SettingsActivity;
 import com.notinglife.android.LocationHelper.activity.UserDetailActivity;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
+import com.notinglife.android.LocationHelper.utils.SPUtil;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
-import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
 
 import java.lang.ref.WeakReference;
 
@@ -95,9 +94,9 @@ public class MineFragment extends Fragment {
         View view = View.inflate(mActivity, R.layout.fragment_mine, null);
         mUnBinder = ButterKnife.bind(this, view);
 
-        if (AVUser.getCurrentUser() != null) {
-            //LogUtil.i(TAG, AVUser.getCurrentUser().toString());
-            String username = AVUser.getCurrentUser().getUsername();
+        //获取是否登录状态
+        String username = SPUtil.getString(mActivity, "username", null);
+        if (username != null) {
             mTvLoginTitle.setText(username);
             mTvLoginHint.setText("欢迎使用本系统");
         } else {
@@ -177,7 +176,7 @@ public class MineFragment extends Fragment {
                         break;
 
                     case R.id.menu_logout:
-                        DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？",ON_CONFIRM_LOGOUT);
+                        DialogUtil.showConfirmDialog(mActivity, mHandler, "注销登录", "请确认是否退出登录？", ON_CONFIRM_LOGOUT);
                         break;
                     case R.id.settings:
                         startActivity(new Intent(mActivity, SettingsActivity.class));
@@ -216,17 +215,28 @@ public class MineFragment extends Fragment {
                 int flag = msg.what;
                 //接收注销本地广播，更新UI等逻辑
                 if (flag == ON_LOGOUT) {
+
+                }
+
+                if (flag == ON_CONFIRM_LOGOUT) {
+
+                    //对话框确认键被点击，触发注销操作和本地广播的发送，
                     //注销的UI更新
                     fragment.mMineToolBar.getMenu().getItem(1).setVisible(false);
                     fragment.mTvLoginTitle.setText("请登录系统");
                     fragment.mTvLoginHint.setText("登陆后同步云端");
+                    //清除用户名和token,sp设置为null，会清除sp中的字段
+                    SPUtil.setString(fragment.mActivity, "username", null);
+                    SPUtil.setString(fragment.mActivity, "token1", null);
+                    SPUtil.setString(fragment.mActivity, "token2", null);
+                    //通过本地广播通知刷新UI 主要是MainActivity用
+                    Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");
+                    logoutIntent.putExtra("flag", ON_LOGOUT);
+                    LocalBroadcastManager.getInstance(fragment.mActivity).sendBroadcast(logoutIntent);
+
                     fragment.getActivity().startActivity(new Intent(fragment.getActivity(), LoginActivity.class));
                     fragment.getActivity().finish();
-                }
 
-                if (flag == ON_CONFIRM_LOGOUT) {
-                    //对话框确认键被点击，触发注销操作和本地广播的发送，
-                    UIRefreshUtil.onLogout(fragment.mActivity.getApplicationContext());
                     ToastUtil.showShortToast(fragment.mActivity, "已注销登录");
                 }
             }
@@ -241,13 +251,7 @@ public class MineFragment extends Fragment {
             int flag = intent.getIntExtra("flag", -1);
 
             if (flag == ON_LOGOUT) {
-                //Bundle on_save_data = intent.getBundleExtra("on_save_data");
-                //LocationDevice tmpDevice = (LocationDevice) on_save_data.getSerializable("on_save_data");
-                Message message = Message.obtain();
-                message.what = ON_LOGOUT;
-                //message.obj = tmpDevice;
-                //LogUtil.i(TAG, " 消息标志位 " + message.what);
-                mHandler.sendMessage(message);
+
             }
         }
     }

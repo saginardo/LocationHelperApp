@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.MsgData;
@@ -70,12 +71,15 @@ public class HttpActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     try {
-                        MsgData msgData = new Gson().fromJson(response.body().string(), MsgData.class);
+                        MsgData msgData = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create().fromJson(response.body().string(), MsgData.class);
+
                         //110
                         if (msgData != null) {
                             LogUtil.i(TAG, msgData.code + "");
                             LogUtil.i(TAG, msgData.message);
-                            LogUtil.i(TAG, msgData.devices.toString());
+                            LogUtil.i(TAG, msgData.devices.get(0).toString());
+                            LogUtil.i(TAG, msgData.devices.get(0).createTime.getTime()+"");
+
                         }
                         //104 101需要重新登录
                     } catch (JsonSyntaxException e) {
@@ -94,7 +98,6 @@ public class HttpActivity extends AppCompatActivity {
         HashMap<String, String> keyValue = new HashMap<>();
         keyValue.put("username", "admin");
         keyValue.put("password", "123456");
-        keyValue.put("appUUID", GlobalConstant.getUUID(mContext));
         OkHttpUtil.doPost(mContext, GlobalConstant.LOGIN_URL, keyValue, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {

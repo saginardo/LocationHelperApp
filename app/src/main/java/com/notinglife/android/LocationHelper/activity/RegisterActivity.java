@@ -2,8 +2,11 @@ package com.notinglife.android.LocationHelper.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
@@ -17,23 +20,28 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVAnalytics;
-import com.avos.avoscloud.AVException;
-import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVUser;
-import com.avos.avoscloud.SaveCallback;
-import com.avos.avoscloud.SignUpCallback;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.notinglife.android.LocationHelper.R;
+import com.notinglife.android.LocationHelper.domain.MsgData;
+import com.notinglife.android.LocationHelper.domain.User;
+import com.notinglife.android.LocationHelper.utils.GlobalConstant;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
+import com.notinglife.android.LocationHelper.utils.NetUtil;
+import com.notinglife.android.LocationHelper.utils.OkHttpUtil;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.ToastUtil;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-
-import static com.avos.avoscloud.AVException.EMAIL_TAKEN;
-import static com.avos.avoscloud.AVException.USERNAME_TAKEN;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -57,14 +65,17 @@ public class RegisterActivity extends AppCompatActivity {
     EditText mEmailAddress2;
 
     private static final String TAG = "RegisterActivity";
-    Unbinder mUnBinder;
+    private Unbinder mUnBinder;
+    private Context mContext;
+    private MyHandler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         mUnBinder = ButterKnife.bind(this);
-
+        mContext = this;
+        mHandler = new MyHandler(this);
 
         setSupportActionBar(mToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -89,6 +100,41 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    private static class MyHandler extends Handler {
+        WeakReference<RegisterActivity> mActivity;
+
+        MyHandler(RegisterActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            int flag = msg.what;
+            final RegisterActivity activity = mActivity.get();
+            if (activity != null) {
+                if (flag == GlobalConstant.MSG_REGISTER_SUCCESS) {
+                    activity.showProgress(false);
+                    ToastUtil.showShortToast(activity.mContext, "注册成功，请登录");
+                    activity.startActivity(new Intent(activity, LoginActivity.class));
+                    activity.finish();
+                }
+                if (flag == GlobalConstant.MSG_REGISTER_NAMEREPEAT) {
+                    activity.showProgress(false);
+                    ToastUtil.showShortToast(activity.mContext, "注册失败，用户名已存在");
+
+                }
+                if (flag == GlobalConstant.MSG_REGISTER_EMAILREPEAT) {
+                    activity.showProgress(false);
+                    ToastUtil.showShortToast(activity.mContext, "注册失败，邮箱已存在");
+                }
+
+            }
+        }
+    }
+
 
     private void attemptRegister() {
         mUsername.setError(null);
@@ -132,7 +178,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         if (!RegexValidator.isEmail(emailAddress2)) {
-            mEmailAddress2.setError(getString(R.string.prompt_password_hint));
+            mEmailAddress2.setError(getString(R.string.prompt_email_hint));
             focusView = mEmailAddress2;
             cancel = true;
         }
@@ -146,52 +192,58 @@ public class RegisterActivity extends AppCompatActivity {
         if (cancel) {
             focusView.requestFocus();
         } else {
-            showProgress(true);
 
-            final AVUser user = new AVUser();// 新建 AVUser 对象实例
-            user.setUsername(username);// 设置用户名
-            user.setPassword(password);// 设置密码
-            user.setEmail(emailAddress);// 设置Email
+            if (NetUtil.getNetState(mContext) != NetUtil.NetState.NET_NO) {
+                showProgress(true);
 
-            user.signUpInBackground(new SignUpCallback() {
-                @Override
-                public void done(AVException e) {
-                    if (e == null) {
-                        // 建立_User表和 user_email表的一个 Pointer 映射关系
-                        AVObject user_email = new AVObject("UserEmail");
-                        user_email.put("emailAddress", emailAddress);
-                        user_email.put("targetUserID", AVObject.createWithoutData("_User", user.getObjectId()));//Point指针类型
-                        user_email.put("targetUserName", user.getUsername());
-                        LogUtil.i(TAG, "保存附表中");
-                        user_email.saveInBackground(new SaveCallback() {
-                            @Override
-                            public void done(AVException e) {
-                                if (e == null) {
-                                    LogUtil.i(TAG, "保存附表成功");
-                                    // 注册成功，把用户对象赋值给当前用户
-                                    ToastUtil.showShortToast(getApplicationContext(), "注册成功，请激活邮箱");
-                                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                    RegisterActivity.this.finish();
-                                }
+                User user = new User();
+                user.setUsername(username);// 设置用户名
+                user.setPassword(password);// 设置密码
+                user.setSalt(username); //将用户名设置为salt
+                user.setEmailAddress(emailAddress);// 设置Email
+                user.setEmailVerified(false);
+                user.setCreateTime(new Date());
+                user.setUpdateTime(new Date());
+                String userJson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create().toJson(user);
+
+                LogUtil.i(TAG, userJson);
+
+                OkHttpUtil.doPostJSON(mContext, GlobalConstant.REGISTER_URL, userJson, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.code() == 200) {
+                            MsgData msgData = new Gson().fromJson(response.body().string(), MsgData.class);
+                            if (msgData.code == GlobalConstant.MSG_REGISTER_SUCCESS) {
+                                //注册成功
+                                Message message = Message.obtain();
+                                message.what = GlobalConstant.MSG_REGISTER_SUCCESS;
+                                mHandler.sendMessage(message);
                             }
-                        });
+                            if (msgData.code == GlobalConstant.MSG_REGISTER_NAMEREPEAT) {
+                                //用户名重复
+                                Message message = Message.obtain();
+                                message.what = GlobalConstant.MSG_REGISTER_NAMEREPEAT;
+                                mHandler.sendMessage(message);
 
-                    } else {
-                        showProgress(false);
-                        ToastUtil.showShortToast(RegisterActivity.this, e.getMessage());
-                        switch (e.getCode()) {
-                            case USERNAME_TAKEN:
-                                ToastUtil.showShortToast(RegisterActivity.this, "用户名已存在，请重新设置");
-                                break;
-                            case EMAIL_TAKEN:
-                                ToastUtil.showShortToast(RegisterActivity.this, "邮箱已存在，请重新设置");
-                                break;
-                            default:
-                                break;
+                            }
+                            if (msgData.code == GlobalConstant.MSG_REGISTER_EMAILREPEAT) {
+                                //邮箱重复
+                                Message message = Message.obtain();
+                                message.what = GlobalConstant.MSG_REGISTER_EMAILREPEAT;
+                                mHandler.sendMessage(message);
+
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+
+
         }
     }
 
@@ -217,18 +269,6 @@ public class RegisterActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        AVAnalytics.onPause(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        AVAnalytics.onResume(this);
     }
 
     @Override

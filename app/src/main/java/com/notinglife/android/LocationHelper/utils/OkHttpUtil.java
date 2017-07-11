@@ -26,6 +26,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+
 /**
  * ${DESCRIPTION}
  *
@@ -38,6 +39,7 @@ public class OkHttpUtil {
     private static final String TAG = "OkHttpUtil";
 
     private static OkHttpClient client = null;
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private OkHttpUtil() {
     }
@@ -63,6 +65,7 @@ public class OkHttpUtil {
 
     /**
      * Get请求
+     *
      * @param url
      * @param callback
      */
@@ -75,7 +78,6 @@ public class OkHttpUtil {
      *   response.setDateHeader("Expires", System.currentTimeMillis() + 60 * 1000);
      *   response.setHeader("Cache-Control", "max-age=60");
      */
-
     public static void doGet(Context context, String url, Callback callback) {
 
         Request request = new Request.Builder()
@@ -111,6 +113,20 @@ public class OkHttpUtil {
         Call call = getInstance(context).newCall(request);
         call.enqueue(callback);
     }
+
+    public static void doPostJSON(Context context, String url, String json, Callback callback) {
+
+        RequestBody requestBody = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("token", SPUtil.getString(context, "token1", ""))
+                .addHeader("appUUID", GlobalConstant.getUUID(context))
+                .post(requestBody)
+                .build();
+        Call call = getInstance(context).newCall(request);
+        call.enqueue(callback);
+    }
+
 
     public static MsgData doSyncPost(Context context, String url, Map<String, String> mapParams) {
         FormBody.Builder builder = new FormBody.Builder();

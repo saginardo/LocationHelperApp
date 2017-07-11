@@ -131,9 +131,9 @@ public class EditUserDialog extends Dialog {
 
             mTvUserNameInfo.setEnabled(false);//不让修改用户名
             if(mUser!=null){ //初始回显页面
-                mTvUserNameInfo.setText(mUser.mUsername);
+             /*   mTvUserNameInfo.setText(mUser.mUsername);
                 mTvUserEmailInfo.setHint(mUser.mEmail);
-                mTvUserEmailInfoRepeat.setHint(mUser.mEmail);
+                mTvUserEmailInfoRepeat.setHint(mUser.mEmail);*/
             }
         }
         if(mFlag==ON_CHANGE_USER_PASSWORD){
@@ -183,14 +183,14 @@ public class EditUserDialog extends Dialog {
     }
 
     public User getUserInfo() {
-        mUser.mUsername = mTvUserNameInfo.getText().toString();
+        /*mUser.mUsername = mTvUserNameInfo.getText().toString();
         String s1 = mTvUserEmailInfo.getText().toString();
         String s2 = mTvUserEmailInfoRepeat.getText().toString();
         if(!s2.equals(s1)){
             return null;
         }else {
             mUser.mEmail = s2;
-        }
+        }*/
         return mUser;
     }
 

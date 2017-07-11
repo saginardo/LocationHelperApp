@@ -10,8 +10,6 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,19 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVException;
-import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
-import com.avos.avoscloud.AVUser;
-import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.LogInCallback;
-import com.avos.avoscloud.RequestEmailVerifyCallback;
-import com.avos.avoscloud.RequestPasswordResetCallback;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.domain.MsgData;
-import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.GlobalConstant;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.NetUtil;
@@ -47,7 +35,6 @@ import com.notinglife.android.LocationHelper.utils.ToastUtil;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -56,9 +43,6 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-import static com.avos.avoscloud.AVException.EMAIL_NOT_FOUND;
-import static com.avos.avoscloud.AVException.USERNAME_PASSWORD_MISMATCH;
-import static com.avos.avoscloud.AVException.USER_DOESNOT_EXIST;
 
 /**
  * ${DESCRIPTION}
@@ -97,12 +81,6 @@ public class LoginActivity extends AppCompatActivity {
     private Unbinder mUnBinder;
     private Handler mHandler;
 
-    private final static int ON_RESET_PASSWORD = 32;
-    private final static int ON_LOGIN_SUCCESS = 33;
-    private final static int ON_LOGIN_FAILED = 34;
-    private final static int ON_LOGIN_ERROR = 35;
-    private final static int ON_LOGIN_TIMEOUT = 36;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -140,7 +118,6 @@ public class LoginActivity extends AppCompatActivity {
                 attemptLogin();
             }
         });
-/*
         mRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -149,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        mResetPasswordButton.setOnClickListener(new View.OnClickListener() {
+       /* mResetPasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 resetPassword();
@@ -170,147 +147,31 @@ public class LoginActivity extends AppCompatActivity {
             int flag = msg.what;
             final LoginActivity activity = mActivity.get();
             if (activity != null) {
-                if (flag == ON_RESET_PASSWORD) {
-                    String username = (String) msg.obj;
-                    //LogUtil.i(TAG, "收到" + username + "修改密码的请求");
-                    final String[] userEmail = new String[1];
-                    AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
-                    userEmailQuery.whereEqualTo("targetUserName", username);
-                    userEmailQuery.findInBackground(new FindCallback<AVObject>() {
-                        @Override
-                        public void done(List<AVObject> list, AVException e) {
-                            if (list != null && list.size() > 0) {
-                                AVObject avObject = list.get(0);
-                                userEmail[0] = avObject.getString("emailAddress");
-                                //LogUtil.i(TAG, userEmail[0]);
-                                AVUser.requestPasswordResetInBackground(userEmail[0], new RequestPasswordResetCallback() {
-                                    @Override
-                                    public void done(AVException e) {
-                                        if (e == null) {
-                                            //求重发验证邮件成功
-                                            ToastUtil.showShortToast(activity, "验证邮件已经重新发送，请检查注册邮箱");
-                                        }
-                                    }
-                                });
-                            } else {
-                                ToastUtil.showShortToast(activity, "没有查询到该用户，请检查用户名是否输入错误");
-                            }
-                        }
-                    });
+                if (flag == GlobalConstant.ON_RESET_PASSWORD) {
+
                 }
-                if (flag == ON_LOGIN_SUCCESS) {
+                if (flag == GlobalConstant.ON_LOGIN_SUCCESS) {
+                    activity.showProgress(false);
                     ToastUtil.showShortToast(activity.mContext, "登录成功");
                     SPUtil.setString(activity.mContext, "username", msg.obj.toString());
                     activity.startActivity(new Intent(activity, MainActivity.class));
                     activity.finish();
                 }
-                if (flag == ON_LOGIN_FAILED) {
+                if (flag == GlobalConstant.ON_LOGIN_FAILED) {
+                    activity.showProgress(false);
                     ToastUtil.showShortToast(activity.mContext, "登录失败");
                 }
-                if (flag == ON_LOGIN_ERROR) {
+                if (flag == GlobalConstant.ON_LOGIN_ERROR) {
                     activity.showProgress(false);
                     ToastUtil.showShortToast(activity.mContext, "登录错误，请联系管理员");
                 }
-                if (flag == ON_LOGIN_TIMEOUT) {
+                if (flag == GlobalConstant.ON_LOGIN_TIMEOUT) {
                     activity.showProgress(false);
                     ToastUtil.showShortToast(activity.mContext, "登录超时，请检查网络连接");
                 }
             }
         }
     }
-
-    private void resetPassword() {
-        DialogUtil.showUserEditDialog(this, mHandler, "重置密码", null, null, ON_RESET_PASSWORD);
-    }
-
-    private void acCloudLogin() {
-        mUsernameView.setError(null);
-        mPasswordView.setError(null);
-
-        final String username = mUsernameView.getText().toString();
-        final String password = mPasswordView.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-        if (!RegexValidator.isUserName(username)) {
-            mUsernameView.setError(getString(R.string.error_username_invalid));
-            focusView = mUsernameView;
-            cancel = true;
-        }
-        if (!RegexValidator.isPassword(password)) {
-            mPasswordView.setError(getString(R.string.error_password_invalid));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            focusView.requestFocus();
-        } else {
-            showProgress(true);
-            AVUser.logInInBackground(username, password, new LogInCallback<AVUser>() {
-                @Override
-                public void done(AVUser avUser, AVException e) {
-                    if (e == null) {
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        LoginActivity.this.finish();
-                    } else {
-                        showProgress(false);
-                        switch (e.getCode()) {
-                            case 216:
-                                ToastUtil.showShortToast(getApplicationContext(), "请验证邮件，若邮件遗失，请点击下方按钮重发");
-                                mEmailResendButton.setVisibility(View.VISIBLE);
-                                mEmailResendButton.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        //邮箱还没有验证，点击后重新请求邮箱验证码，
-                                        // FIXED: 2017/6/23
-                                        final String[] userEmail = new String[1];
-                                        AVQuery<AVObject> userEmailQuery = new AVQuery<>("UserEmail");
-                                        userEmailQuery.whereEqualTo("targetUserName", username);
-                                        userEmailQuery.findInBackground(new FindCallback<AVObject>() {
-                                            @Override
-                                            public void done(List<AVObject> list, AVException e) {
-                                                if (list != null && list.size() > 0) {
-                                                    AVObject avObject = list.get(0);
-                                                    userEmail[0] = avObject.getString("emailAddress");
-                                                    LogUtil.i(TAG, userEmail[0]);
-                                                    if (!TextUtils.isEmpty(userEmail[0])) {
-                                                        AVUser.requestEmailVerifyInBackground(userEmail[0], new RequestEmailVerifyCallback() {
-                                                            @Override
-                                                            public void done(AVException e) {
-                                                                if (e == null) {
-                                                                    //求重发验证邮件成功
-                                                                    ToastUtil.showShortToast(mContext, "验证邮件已经重新发送，请检查注册邮箱");
-                                                                }
-                                                            }
-                                                        });
-                                                    }
-                                                } else {
-                                                    ToastUtil.showShortToast(getApplicationContext(), "没有查询到该用户，请检查用户名是否输入错误");
-                                                }
-                                            }
-                                        });
-                                    }
-                                });
-
-                                break;
-                            case EMAIL_NOT_FOUND:
-                                ToastUtil.showShortToast(mContext, "该用户还未设置邮箱");
-                                break;
-                            case USER_DOESNOT_EXIST:
-                                ToastUtil.showShortToast(mContext, "该用户名尚未注册，请检查是否填写错误");
-                            case USERNAME_PASSWORD_MISMATCH:
-                                ToastUtil.showShortToast(mContext, "用户名或密码错误");
-                            default:
-                                break;
-                        }
-                        Log.e("LOGIN", e.getMessage());
-                    }
-                }
-            });
-        }
-    }
-
 
     private void attemptLogin() {
 
@@ -343,15 +204,17 @@ public class LoginActivity extends AppCompatActivity {
                 ToastUtil.showShortToast(mContext, "没有网络，请打开网络连接");
             } else {
                 showProgress(true);
+
                 HashMap<String, String> keyValue = new HashMap<>();
                 keyValue.put("username", username);
                 keyValue.put("password", password);
+
                 OkHttpUtil.doPost(mContext, GlobalConstant.LOGIN_URL, keyValue, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         e.printStackTrace();
                         Message msg = Message.obtain();
-                        msg.what = ON_LOGIN_TIMEOUT;
+                        msg.what = GlobalConstant.ON_LOGIN_TIMEOUT;
                         mHandler.sendMessage(msg);
                     }
 
@@ -362,24 +225,22 @@ public class LoginActivity extends AppCompatActivity {
                             MsgData msgData = new Gson().fromJson(response.body().string(), MsgData.class);
                             LogUtil.i(TAG, msgData.code + "");
                             //100代表登录成功
-                            if (msgData.code == 100) {
+                            if (msgData.code == GlobalConstant.MSG_LOGIN_SUCCESS) {
                                 String[] split = msgData.message.split("#");
-
                                 if (split.length == 2) {
-
                                     SPUtil.setString(mContext, "token1", split[0]);
                                     SPUtil.setString(mContext, "token2", split[1]);
-                                    msg.what = ON_LOGIN_SUCCESS;
+                                    msg.what = GlobalConstant.ON_LOGIN_SUCCESS;
                                     msg.obj = username;
                                     mHandler.sendMessage(msg);
                                 } else {
-                                    msg.what = ON_LOGIN_FAILED;
+                                    msg.what = GlobalConstant.ON_LOGIN_FAILED;
                                     mHandler.sendMessage(msg);
                                 }
                             }
-                        } catch (JsonSyntaxException e) {
+                        } catch (Exception e) {
                             LogUtil.i(TAG, "json解析失败！");
-                            msg.what = ON_LOGIN_ERROR;
+                            msg.what = GlobalConstant.ON_LOGIN_ERROR;
                             mHandler.sendMessage(msg);
                         }
                     }

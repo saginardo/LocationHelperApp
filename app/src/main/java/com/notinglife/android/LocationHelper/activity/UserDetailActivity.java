@@ -7,31 +7,18 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVException;
-import com.avos.avoscloud.AVObject;
-import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.AVUser;
-import com.avos.avoscloud.FindCallback;
-import com.avos.avoscloud.RequestEmailVerifyCallback;
-import com.avos.avoscloud.RequestPasswordResetCallback;
-import com.avos.avoscloud.SaveCallback;
 import com.notinglife.android.LocationHelper.R;
-import com.notinglife.android.LocationHelper.domain.User;
-import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
-import com.notinglife.android.LocationHelper.utils.ToastUtil;
-import com.notinglife.android.LocationHelper.utils.UIRefreshUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.Date;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -88,18 +75,15 @@ public class UserDetailActivity extends AppCompatActivity {
             final String username = currentUser.getUsername();
             final String email = currentUser.getEmail();
             Date createdAt = currentUser.getCreatedAt();
-            //查出来的云对象保存为本地对象
-            final User user = new User();
-            user.mObjectId = mObjectID;
-            user.mUsername = username;
-            user.mEmail = email;
+
+
 
             LogUtil.i(TAG, createdAt.toString());
 
             mTvUsername.setText(username);
             mTvEmailAddress.setText(email);
 
-            mMineRequestChangePassword.setOnClickListener(new View.OnClickListener() {
+           /* mMineRequestChangePassword.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // TODOED: 2017/6/21 修改用户密码的逻辑
@@ -116,7 +100,7 @@ public class UserDetailActivity extends AppCompatActivity {
                     // TODO: 2017/6/20 修改用户注册邮箱
                     DialogUtil.showUserEditDialog(mActivity, mHandler, "修改用户邮箱", "请确定修改如下用户邮箱", user, ON_EDIT_USER_EMAIL);
                 }
-            });
+            });*/
         }
 
     }
@@ -139,7 +123,7 @@ public class UserDetailActivity extends AppCompatActivity {
                 int flag = msg.what;
 
                 if (flag == ON_EDIT_USER_EMAIL) {//接收修改邮箱的本地广播
-                    User user = (User) msg.obj;
+                    /*User user = (User) msg.obj;
                     final String email = user.mEmail;
                     final String mObjectId = user.mObjectId;
                     AVUser.getCurrentUser().saveInBackground(new SaveCallback() {
@@ -184,10 +168,10 @@ public class UserDetailActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                    });
+                    });*/
                 }
                 if (flag == ON_CHANGE_USER_PASSWORD) {
-                    User user = (User) msg.obj;
+                  /*  User user = (User) msg.obj;
                     final String email = user.mEmail;
                     LogUtil.i(TAG, "用户当前邮箱为：" + email);
                     AVUser.requestPasswordResetInBackground(email, new RequestPasswordResetCallback() {
@@ -201,7 +185,7 @@ public class UserDetailActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         }
-                    });
+                    });*/
                 }
             }
         }

@@ -29,15 +29,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    // LeanCloud 基础包
-    // 推送与实时聊天需要的包
-    compile('cn.leancloud.android:avoscloud-push:v3.+@aar') { transitive = true }
-    // LeanCloud 统计包
-    // LeanCloud 反馈包
-    //二维码
-    //junit
-    //butterKnife
-    //gson
+
+    compile('cn.leancloud.android:avoscloud-push:v3.+@aar')
     compile 'cn.leancloud.android:avoscloud-sdk:v3.+'
     compile 'cn.leancloud.android:avoscloud-statistics:v3.+'
     compile 'cn.leancloud.android:avoscloud-feedback:v3.+@aar'

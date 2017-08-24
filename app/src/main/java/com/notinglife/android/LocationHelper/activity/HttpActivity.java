@@ -44,13 +44,13 @@ public class HttpActivity extends AppCompatActivity {
         mContext = this;
         mBtLogin.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 login();
             }
         });
         mBtQueryDevices.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 queryDevices();
             }
         });

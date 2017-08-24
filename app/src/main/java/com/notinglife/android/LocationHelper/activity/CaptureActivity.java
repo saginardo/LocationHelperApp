@@ -62,7 +62,7 @@ public class CaptureActivity extends AppCompatActivity {
     private void initView() {
         mLight.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 if (!isOpen) {
                     CodeUtils.isLightEnable(true);
                     isOpen = true;
@@ -70,14 +70,13 @@ public class CaptureActivity extends AppCompatActivity {
                     CodeUtils.isLightEnable(false);
                     isOpen = false;
                 }
-
             }
         });
 
         //从图库选择图片
         mFromGallery.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 Intent intentFromGallery = new Intent(Intent.ACTION_GET_CONTENT);
                 intentFromGallery.addCategory(Intent.CATEGORY_OPENABLE);
                 intentFromGallery.setType("image/*");

@@ -26,7 +26,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.avos.avoscloud.AVUser;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
@@ -448,7 +447,7 @@ public class AcqDataFragment extends Fragment implements View.OnClickListener {
                 String deviceId = mDeviceId.getText().toString();
                 String macAddress = EditTextUtil.generateMacAddress(mMacAddress_1, mMacAddress_2,
                         mMacAddress_3, mMacAddress_4, mMacAddress_5, mMacAddress_6);
-                String owner = AVUser.getCurrentUser().getUsername();
+                String owner = SPUtil.getString(mActivity,"username",null);
 
                 if (SPUtil.getBoolean(getActivity(), IsLocation, false)) {
                     if (TextUtils.isEmpty(mLocationDevice.mLatitude)) {

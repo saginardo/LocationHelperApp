@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.avos.avoscloud.AVUser;
 
 /**
  * ${DESCRIPTION}
@@ -23,7 +22,7 @@ public class UIRefreshUtil {
 
 
     public static void onLogout(Context context){
-        AVUser.logOut();
+        SPUtil.setString(context,"username",null);
 
         //通过本地广播通知刷新UI
         Intent logoutIntent = new Intent("com.notinglife.android.action.ON_LOGOUT");

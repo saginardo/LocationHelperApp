@@ -41,10 +41,13 @@
             android:value="yBuYy3cGF3h3Hf7mH9Tb8QEBO5HmSW6A"/>
 
         <!-- Activity -->
-        <activity
-            android:name=".activity.LoginActivity"
-            android:label="@string/title_activity_login">
 
+        <activity android:name=".activity.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <activity android:name=".activity.RegisterActivity">
         </activity>
@@ -67,8 +70,6 @@
             android:enabled="true"
             android:process=":remote">
         </service>
-        <!-- LeanCloud Push Service -->
-        <service android:name="com.avos.avoscloud.PushService"/>
 
         <!-- My Push Receiver -->
         <receiver
@@ -85,12 +86,16 @@
         <activity android:name=".activity.RepairDevicesActivity">
         </activity>
         <activity android:name=".activity.HttpActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
 
+        <service
+            android:name=".service.DownloadService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+        <service android:name=".service.FileService">
+
+        </service>
     </application>
 
 </manifest>

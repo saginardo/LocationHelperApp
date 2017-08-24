@@ -19,13 +19,18 @@ public class GlobalConstant {
     public static final String WEB_BASE_URL = "http://192.168.123.21/device/";
     public static final String LOGIN_URL = WEB_BASE_URL + "appLogin.action";
     public static final String REGISTER_URL = WEB_BASE_URL + "appRegister.action";
-
-
     public static final String REFRESH_TOKEN = WEB_BASE_URL + "refreshToken.action";
-
-    //"http://192.168.123.21/device/queryDevicesToJson.action"
     public static final String QUERY_DEVICES_URL = WEB_BASE_URL + "queryDevicesToJson.action";
 
+    //path
+
+    //Action prefix
+    public static final String ACTION_PREFIX = "com.notinglife.android.action.";
+    public static final String ACTION_ON_RECEIVE_LOCATION_DATA = ACTION_PREFIX + "ON_RECEIVE_LOCATION_DATA";
+    public static final String ACTION_ON_LOGOUT = ACTION_PREFIX + "ON_LOGOUT";
+    public static final String ACTION_ON_UPLOAD = ACTION_PREFIX+"ON_UPLOAD";
+    public static final String ACTION_ON_UPLOAD_RESULT = ACTION_PREFIX+"UPLOAD_RESULT";
+    //okhttp cache
     public static final Integer CACHE_SIZE = 1024 * 1024 * 20; //20M空间
 
     //设备UUID

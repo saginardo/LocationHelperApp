@@ -43,6 +43,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import static android.R.attr.id;
+
 
 /**
  * ${DESCRIPTION}
@@ -99,11 +101,11 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setSupportActionBar(mLoginToolBar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
                     attemptLogin();
                     return true;

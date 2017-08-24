@@ -31,6 +31,7 @@ import com.notinglife.android.LocationHelper.dao.DeviceRawDao;
 import com.notinglife.android.LocationHelper.domain.LocationDevice;
 import com.notinglife.android.LocationHelper.utils.DialogUtil;
 import com.notinglife.android.LocationHelper.utils.EditTextUtil;
+import com.notinglife.android.LocationHelper.utils.GlobalConstant;
 import com.notinglife.android.LocationHelper.utils.MyLocalBroadcastManager;
 import com.notinglife.android.LocationHelper.utils.RegexValidator;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
@@ -134,7 +135,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         //动态注册本地广播
         mBroadcastManager = LocalBroadcastManager.getInstance(this);
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.notinglife.android.action.ON_RECEIVE_LOCATION_DATA"); //注册接收百度地图回显信息
+        filter.addAction(GlobalConstant.ACTION_ON_RECEIVE_LOCATION_DATA); //注册接收百度地图回显信息
         mReceiver = new MyReceiver();
         mBroadcastManager.registerReceiver(mReceiver, filter);
 
@@ -185,7 +186,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         //是否从AcqDataFragment获取新的定位信息
         mBtRelocation.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 //先判断 主页面是否在定位中
                 if (SPUtil.getBoolean(DeviceDetailActivity.this, IsLocation, false)) {
                     if (SPUtil.getBoolean(getApplicationContext(),
@@ -318,10 +319,11 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 mTvDeviceStatusInfo.setTextColor(getResources().getColor(R.color.colorBlue));
                 mTvDeviceStatusInfo.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(View view) {
                         DialogUtil.showChoiceDialog(mActivity, mHandler, "请选择设备维护后状态", mLocationDevice.mStatus, LOCATION_DEVICE_STATUS, "正常", "离线");
                     }
                 });
+
                 mBtRelocation.setVisibility(View.VISIBLE);
                 return true;
             case R.id.device_detail_save:

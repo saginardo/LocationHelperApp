@@ -12,13 +12,11 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.avos.avoscloud.AVUser;
 import com.notinglife.android.LocationHelper.R;
 import com.notinglife.android.LocationHelper.utils.LogUtil;
 import com.notinglife.android.LocationHelper.utils.SPUtil;
 
 import java.lang.ref.WeakReference;
-import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -70,18 +68,9 @@ public class UserDetailActivity extends AppCompatActivity {
 
         if (SPUtil.getString(mActivity,"username",null) != null) {
 
-            final AVUser currentUser = AVUser.getCurrentUser();
-            final String mObjectID = currentUser.getObjectId();
-            final String username = currentUser.getUsername();
-            final String email = currentUser.getEmail();
-            Date createdAt = currentUser.getCreatedAt();
-
-
-
-            LogUtil.i(TAG, createdAt.toString());
-
+            String username = SPUtil.getString(mActivity,"username",null);
             mTvUsername.setText(username);
-            mTvEmailAddress.setText(email);
+
 
            /* mMineRequestChangePassword.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -123,69 +112,10 @@ public class UserDetailActivity extends AppCompatActivity {
                 int flag = msg.what;
 
                 if (flag == ON_EDIT_USER_EMAIL) {//接收修改邮箱的本地广播
-                    /*User user = (User) msg.obj;
-                    final String email = user.mEmail;
-                    final String mObjectId = user.mObjectId;
-                    AVUser.getCurrentUser().saveInBackground(new SaveCallback() {
-                        @Override
-                        public void done(AVException e) {
-                            AVUser.getCurrentUser().put("email", email);
-                            AVUser.getCurrentUser().saveInBackground(new SaveCallback() {
-                                @Override
-                                public void done(AVException e) {
-                                    if (e == null) {
-                                        ToastUtil.showLongToast(activity, "请查收邮件激活后，重新登录");
-                                        AVUser.requestEmailVerifyInBackground(email, new RequestEmailVerifyCallback() {
-                                            @Override
-                                            public void done(AVException e) {
-                                                //do nothing
-                                            }
-                                        });
-                                        // Pointer 查询, 更新对应用户指向的Pointer的邮箱
-                                        AVQuery<AVObject> pointerQuery = new AVQuery<>("UserEmail");
-                                        pointerQuery.whereEqualTo("targetUserID", AVObject.createWithoutData("targetUserID", mObjectId));
-                                        pointerQuery.findInBackground(new FindCallback<AVObject>() {
-                                            @Override
-                                            public void done(List<AVObject> list, AVException e) {
-                                                if (list != null && list.size() > 0) {
-                                                    AVObject avObject = list.get(0);
-                                                    avObject.put("emailAddress", email);
-                                                    avObject.saveInBackground(new SaveCallback() {
-                                                        @Override
-                                                        public void done(AVException e) {
-                                                            if (e == null) {
-                                                                //UserEmail表保存成功，
-                                                                UIRefreshUtil.onLogout(activity);
-                                                                activity.finish();
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        });
 
-                                    }
-                                }
-                            });
-                        }
-                    });*/
                 }
-                if (flag == ON_CHANGE_USER_PASSWORD) {
-                  /*  User user = (User) msg.obj;
-                    final String email = user.mEmail;
-                    LogUtil.i(TAG, "用户当前邮箱为：" + email);
-                    AVUser.requestPasswordResetInBackground(email, new RequestPasswordResetCallback() {
-                        @Override
-                        public void done(AVException e) {
-                            if (e == null) {
-                                ToastUtil.showShortToast(activity, "密码重置链接已发送到注册邮箱");
-                                UIRefreshUtil.onLogout(activity);
-                                activity.finish();
-                            } else {
-                                e.printStackTrace();
-                            }
-                        }
-                    });*/
+                if (flag == ON_CHANGE_USER_PASSWORD) {//接收修改密码的本地广播
+
                 }
             }
         }

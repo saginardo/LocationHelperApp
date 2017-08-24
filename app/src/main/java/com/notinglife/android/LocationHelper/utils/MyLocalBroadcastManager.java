@@ -1,6 +1,7 @@
 package com.notinglife.android.LocationHelper.utils;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -20,7 +21,7 @@ public class MyLocalBroadcastManager {
     /**
      * 抽取本地广播发送的方法
      *
-     * @param activity   广播依赖的Activity 对象
+     * @param context   广播依赖的Activity 对象
      * @param action     广播的action
      * @param flag       广播的类型标志位
      * @param extraKey   intent的额外数据 String类型 键
@@ -41,5 +42,13 @@ public class MyLocalBroadcastManager {
             intent.putExtra(bundleName, bundle);
         }
         LocalBroadcastManager.getInstance(activity).sendBroadcast(intent);
+    }
+
+    public static void sendLocalBroadcast(Context context, String action, String extraString, String extraValue) {
+        Intent intent = new Intent(action);
+        if (extraString != null) {
+            intent.putExtra(extraString, extraValue);
+        }
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 }
